@@ -28,4 +28,16 @@ export class CompanyRepository implements ICompanyRepository {
       $or: [{ email: email }, { name: name }],
     });
   }
+  async findById(id: string): Promise<Company | null> {
+    return await CompanyModel.findById(id);
+  }
+  async findByIdAndChangePassword(
+    id: string,
+    newPassword: string
+  ): Promise<UpdateWriteOpResult> {
+    return await CompanyModel.updateOne(
+      { _id: id },
+      { $set: { password: newPassword } }
+    );
+  }
 }

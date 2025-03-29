@@ -13,4 +13,9 @@ export interface ICompanyRepository {
   }): Promise<Company>;
   findByEmail(email: string): Promise<Company | null>;
   findByEmailOrName(name: string, email: string): Promise<Company | null>;
+  findById(id: string): Promise<Company | null>;
+  findByIdAndChangePassword(
+    id: string,
+    newPassword: string
+  ): Promise<UpdateWriteOpResult>;
 }
