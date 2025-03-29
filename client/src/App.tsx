@@ -4,6 +4,7 @@ import AuthRoutes from "./routes/AuthRoutes";
 import AdminLogin from "./components/pages/AdminLogin";
 import CompanyRegister from "@/components/pages/CompanyRegister";
 import VerifyCompany from "@/components/ui/VerifyCompany";
+import CompanyLogin from "@/components/pages/CompanyLogin";
 import { Toaster } from "sonner";
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/company-register" element={<CompanyRegister />} />
           <Route path="/verify-company/:token" element={<VerifyCompany />} />
+          <Route path="company-login" element={<CompanyLogin />} />
         </Route>
         <Route path="*" element={<h1>404</h1>} />
       </Routes>

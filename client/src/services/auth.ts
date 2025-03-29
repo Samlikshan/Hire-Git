@@ -1,4 +1,4 @@
-import axios, { isAxiosError } from "axios";
+import axios, { AxiosResponse, isAxiosError } from "axios";
 import { toast } from "sonner";
 
 const apiURL: string =
@@ -79,6 +79,20 @@ export const verifyCompanyService = async (token: string) => {
   }
 };
 
+export const companyLoginservice = async (
+  email: string,
+  password: string
+): Promise<AxiosResponse> => {
+  try {
+    const response = await apiClient.post(`${apiURL}/auth/login/company`, {
+      email,
+      password,
+    });
+    return response;
+  } catch (error) {
+    return handleAxiosError(error);
+  }
+};
 export const logoutService = async () => {
   try {
     await apiClient.get(`${apiURL}/auth/logout`, { withCredentials: true });
