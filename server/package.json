@@ -18,22 +18,34 @@
   },
   "homepage": "https://github.com/Samlikshan/Hire#readme",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.777.0",
     "@types/winston": "^2.4.4",
+    "aws-sdk": "^2.1692.0",
+    "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.0",
     "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.2",
+    "multer-s3": "^3.0.1",
+    "nodemailer": "^6.10.0",
     "ts-node": "^10.9.2",
+    "uuid": "^11.1.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/mongoose": "^5.11.97",
     "@types/morgan": "^1.9.9",
-    "@types/node": "^22.13.14"
+    "@types/multer": "^1.4.12",
+    "@types/multer-s3": "^3.0.3",
+    "@types/node": "^22.13.14",
+    "@types/nodemailer": "^6.4.17"
   }
 }
