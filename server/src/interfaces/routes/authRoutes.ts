@@ -20,6 +20,8 @@ router.post("/admin/login", authController.loginAdmin);
 router.post("/register/candidate", authController.registerCandidate);
 router.post("/verify-email/candidate", authController.verifyCandidate);
 router.post("/login/candidate", authController.loginCandidate);
+router.post("/google-auth", authController.loginWithGoogle);
+
 //company
 router.post(
   "/register/company",

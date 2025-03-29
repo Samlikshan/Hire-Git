@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 
 //services
+import { OAuth2Client } from "google-auth-library";
+import { EmailService } from "../../utils/emailService";
 import { HashService } from "../../utils/hashService";
 import { JwtService } from "../../utils/jwtService";
 
@@ -11,7 +13,6 @@ import { LoginAdminUseCase } from "../../domain/usecases/Admin/auth/LoginUseCase
 //company
 import { RegisterCompanyUseCase } from "../../domain/usecases/company/auth/RegisterUseCase";
 import { CompanyRepository } from "../../infrastructure/database/repositories/CompanyRepository";
-import { EmailService } from "../../utils/emailService";
 import { VerifyCompanyUseCase } from "../../domain/usecases/company/auth/VerifyCompanyUseCase";
 import { LoginCompanyUseCase } from "../../domain/usecases/company/auth/LoginUseCase";
 import { ForgotPasswordSentEmailUseCase as CompanyForgotPasswordSentEmailUseCase } from "../../domain/usecases/company/auth/ForgotPasswordSendEmailUseCase";
@@ -22,6 +23,7 @@ import { CandidateRepository } from "../../infrastructure/database/repositories/
 import { RegisterCandidateUseCase } from "../../domain/usecases/Candidate/auth/RegisterUseCase";
 import { VerifyCandidateUseCase } from "../../domain/usecases/Candidate/auth/VerifyCandidateUseCase";
 import { LoginCandidateUseCase } from "../../domain/usecases/Candidate/auth/LoginUseCase";
+import { LoginWithGoogleUseCase } from "../../domain/usecases/Candidate/auth/LoginWithGoogleUseCase";
 
 const candidateRepository = new CandidateRepository();
 const companyRepository = new CompanyRepository();
@@ -80,6 +82,11 @@ export class AuthController {
   private loginCandidateUseCase = new LoginCandidateUseCase(
     candidateRepository,
     this.hashService,
+    this.jwtService
+  );
+  private loginWithEmailUseCase = new LoginWithGoogleUseCase(
+    candidateRepository,
+    new OAuth2Client(),
     this.jwtService
   );
 
@@ -262,6 +269,29 @@ export class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
+      res.json({ user: response.user, message: response.message });
+    } catch (error: unknown) {
+      next(error);
+    }
+  };
+
+  loginWithGoogle = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { token } = req.body;
+      const response = await this.loginWithEmailUseCase.execute(token);
+      res.cookie("accessToken", response.accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 15 * 60 * 60 * 1000,
+      });
+
+      res.cookie("refreshToken", response.refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
       res.json({ user: response.user, message: response.message });
     } catch (error: unknown) {
       next(error);
