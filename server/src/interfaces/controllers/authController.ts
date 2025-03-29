@@ -14,6 +14,7 @@ import { RegisterCompanyUseCase } from "../../domain/usecases/company/auth/Regis
 import { CompanyRepository } from "../../infrastructure/database/repositories/CompanyRepository";
 import { EmailService } from "../../utils/emailService";
 import { VerifyCompanyUseCase } from "../../domain/usecases/company/auth/VerifyCompanyUseCase";
+import { LoginCompanyUseCase } from "../../domain/usecases/company/auth/LoginUseCase";
 const adminRepository = new AdminRepository();
 const companyRepository = new CompanyRepository();
 
@@ -39,6 +40,11 @@ export class AuthController {
   );
   private verifyCompanyUseCase = new VerifyCompanyUseCase(
     companyRepository,
+    this.jwtService
+  );
+  private loginCompanyUseCase = new LoginCompanyUseCase(
+    companyRepository,
+    this.hashService,
     this.jwtService
   );
 
@@ -109,6 +115,30 @@ export class AuthController {
       console.log(token);
       const response = await this.verifyCompanyUseCase.execute(token);
       res.json({ message: response.message });
+    } catch (error: unknown) {
+      next(error);
+    }
+  };
+
+  loginCompany = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, password } = req.body;
+      const response = await this.loginCompanyUseCase.execute(email, password);
+      res.cookie("accessToken", response.accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 15 * 60 * 60 * 1000,
+      });
+
+      res.cookie("refreshToken", response.refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      res.json({ user: response.company, message: response.message });
     } catch (error: unknown) {
       next(error);
     }

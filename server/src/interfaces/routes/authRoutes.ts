@@ -22,6 +22,6 @@ router.post(
 );
 
 router.post("/verify/company", authController.verifyCompany);
-
+router.post("/login/company", authController.loginCompany);
 router.get("/logout", authController.logout);
 export default router;
