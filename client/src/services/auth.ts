@@ -93,6 +93,37 @@ export const companyLoginservice = async (
     return handleAxiosError(error);
   }
 };
+
+export const sendResetPasswordCompany = async (email: string) => {
+  try {
+    const response = await apiClient.post(
+      `${apiURL}/auth/company/generate-reset-password`,
+      { email }
+    );
+    return response;
+  } catch (error) {
+    return handleAxiosError(error);
+  }
+};
+
+export const companyResetPassword = async (
+  token: string,
+  newPassword: string
+) => {
+  try {
+    const response = await apiClient.post(
+      `${apiURL}/auth/company/reset-password`,
+      {
+        token,
+        newPassword,
+      }
+    );
+
+    return response;
+  } catch (error) {
+    return handleAxiosError(error);
+  }
+};
 export const logoutService = async () => {
   try {
     await apiClient.get(`${apiURL}/auth/logout`, { withCredentials: true });

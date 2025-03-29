@@ -5,6 +5,8 @@ import AdminLogin from "./components/pages/AdminLogin";
 import CompanyRegister from "@/components/pages/CompanyRegister";
 import VerifyCompany from "@/components/ui/VerifyCompany";
 import CompanyLogin from "@/components/pages/CompanyLogin";
+import CompanyForgotPasswordForm from "@/components/forms/CompanyForgotPassword";
+import CompanyResetPassword from "@/components/forms/CompanyResetPassword";
 import { Toaster } from "sonner";
 
 function App() {
@@ -17,6 +19,14 @@ function App() {
           <Route path="/company-register" element={<CompanyRegister />} />
           <Route path="/verify-company/:token" element={<VerifyCompany />} />
           <Route path="company-login" element={<CompanyLogin />} />
+          <Route
+            path="company-forgot-password"
+            element={<CompanyForgotPasswordForm />}
+          />
+          <Route
+            path="/company/reset-password/:token"
+            element={<CompanyResetPassword />}
+          />
         </Route>
         <Route path="*" element={<h1>404</h1>} />
       </Routes>
