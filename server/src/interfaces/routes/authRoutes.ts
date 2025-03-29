@@ -13,8 +13,14 @@ const uploadOptions = {
 
 const fileUpload = new FileUpload(uploadOptions);
 
+//admin
 router.post("/admin/login", authController.loginAdmin);
 
+//candidate
+router.post("/register/candidate", authController.registerCandidate);
+router.post("/verify-email/candidate", authController.verifyCandidate);
+
+//company
 router.post(
   "/register/company",
   fileUpload.uploadFile("registrationDocument"),

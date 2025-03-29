@@ -17,8 +17,13 @@ import { LoginCompanyUseCase } from "../../domain/usecases/company/auth/LoginUse
 import { ForgotPasswordSentEmailUseCase as CompanyForgotPasswordSentEmailUseCase } from "../../domain/usecases/company/auth/ForgotPasswordSendEmailUseCase";
 import { ResetPasswordUseCase as CompanyResetPasswordUseCase } from "../../domain/usecases/company/auth/ResetPassword";
 
-const adminRepository = new AdminRepository();
+//candidate
+import { CandidateRepository } from "../../infrastructure/database/repositories/CandidateRepository";
+import { RegisterCandidateUseCase } from "../../domain/usecases/Candidate/auth/RegisterUseCase";
+import { VerifyCandidateUseCase } from "../../domain/usecases/Candidate/auth/VerifyCandidateUseCase";
+const candidateRepository = new CandidateRepository();
 const companyRepository = new CompanyRepository();
+const adminRepository = new AdminRepository();
 
 export class AuthController {
   //services
@@ -60,6 +65,15 @@ export class AuthController {
     this.jwtService,
     this.hashService,
     this.emailService
+  );
+
+  //candidate
+  private registerCandidateUseCase = new RegisterCandidateUseCase(
+    candidateRepository
+  );
+  private verifyCandidateUseCase = new VerifyCandidateUseCase(
+    candidateRepository,
+    this.jwtService
   );
 
   //admin
@@ -190,6 +204,35 @@ export class AuthController {
       next(error);
     }
   };
+
+  registerCandidate = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { name, email, password } = req.body;
+      const response = await this.registerCandidateUseCase.execute(
+        name,
+        email,
+        password
+      );
+      res.json(response);
+    } catch (error: unknown) {
+      next(error);
+    }
+  };
+
+  verifyCandidate = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { token } = req.body;
+      const response = await this.verifyCandidateUseCase.execute(token);
+      res.json(response);
+    } catch (error: unknown) {
+      next(error);
+    }
+  };
+
   logout = async (req: Request, res: Response) => {
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
