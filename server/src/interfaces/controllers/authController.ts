@@ -21,6 +21,8 @@ import { ResetPasswordUseCase as CompanyResetPasswordUseCase } from "../../domai
 import { CandidateRepository } from "../../infrastructure/database/repositories/CandidateRepository";
 import { RegisterCandidateUseCase } from "../../domain/usecases/Candidate/auth/RegisterUseCase";
 import { VerifyCandidateUseCase } from "../../domain/usecases/Candidate/auth/VerifyCandidateUseCase";
+import { LoginCandidateUseCase } from "../../domain/usecases/Candidate/auth/LoginUseCase";
+
 const candidateRepository = new CandidateRepository();
 const companyRepository = new CompanyRepository();
 const adminRepository = new AdminRepository();
@@ -73,6 +75,11 @@ export class AuthController {
   );
   private verifyCandidateUseCase = new VerifyCandidateUseCase(
     candidateRepository,
+    this.jwtService
+  );
+  private loginCandidateUseCase = new LoginCandidateUseCase(
+    candidateRepository,
+    this.hashService,
     this.jwtService
   );
 
@@ -228,6 +235,34 @@ export class AuthController {
       const { token } = req.body;
       const response = await this.verifyCandidateUseCase.execute(token);
       res.json(response);
+    } catch (error: unknown) {
+      next(error);
+    }
+  };
+
+  loginCandidate = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, password } = req.body;
+      const response = await this.loginCandidateUseCase.execute(
+        email,
+        password
+      );
+
+      res.cookie("accessToken", response.accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 15 * 60 * 60 * 1000,
+      });
+
+      res.cookie("refreshToken", response.refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      res.json({ user: response.user, message: response.message });
     } catch (error: unknown) {
       next(error);
     }

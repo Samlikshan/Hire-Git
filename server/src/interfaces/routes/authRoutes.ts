@@ -19,7 +19,7 @@ router.post("/admin/login", authController.loginAdmin);
 //candidate
 router.post("/register/candidate", authController.registerCandidate);
 router.post("/verify-email/candidate", authController.verifyCandidate);
-
+router.post("/login/candidate", authController.loginCandidate);
 //company
 router.post(
   "/register/company",
