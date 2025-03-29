@@ -10,6 +10,9 @@ const AuthRoutes = () => {
   if (isAuthenticated && role == "admin") {
     return <Navigate to="/admin" replace />;
   }
+  if (isAuthenticated && role == "company") {
+    return <Navigate to="/company" replace />;
+  }
 
   return <Outlet />;
 };

@@ -10,7 +10,7 @@ export class VerifyCompanyUseCase {
   ) {}
   async execute(token: string) {
     const decoded = this.jwtService.verifyToken(token);
-    console.log(decoded);
+
     if (decoded == null)
       throw new HttpException(
         "Invalid or expired link",

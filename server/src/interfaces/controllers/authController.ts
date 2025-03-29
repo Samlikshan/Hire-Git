@@ -126,7 +126,7 @@ export class AuthController {
   verifyCompany = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { token } = req.body;
-      console.log(token);
+
       const response = await this.verifyCompanyUseCase.execute(token);
       res.json({ message: response.message });
     } catch (error: unknown) {
