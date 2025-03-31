@@ -13,7 +13,9 @@ const AuthRoutes = () => {
   if (isAuthenticated && role == "company") {
     return <Navigate to="/company" replace />;
   }
-
+  if (isAuthenticated && role == "candidate") {
+    return <Navigate to="/" replace />;
+  }
   return <Outlet />;
 };
 

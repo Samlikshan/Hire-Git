@@ -158,6 +158,32 @@ export const verifyEmailService = async (
   }
 };
 
+export const loginService = async (
+  email: string,
+  password: string
+): Promise<AxiosResponse> => {
+  try {
+    const response = await apiClient.post(`${apiURL}/auth/login/candidate`, {
+      email,
+      password,
+    });
+    return response;
+  } catch (error: unknown) {
+    return handleAxiosError(error);
+  }
+};
+
+export const loginWithGoogle = async (token: string) => {
+  try {
+    const response = await apiClient.post(`${apiURL}/auth/google-auth`, {
+      token,
+    });
+    return response;
+  } catch (error) {
+    return handleAxiosError(error);
+  }
+};
+
 export const logoutService = async () => {
   try {
     await apiClient.get(`${apiURL}/auth/logout`, { withCredentials: true });
