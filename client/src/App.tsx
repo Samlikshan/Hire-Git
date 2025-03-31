@@ -10,7 +10,8 @@ import CompanyResetPassword from "@/components/forms/CompanyResetPassword";
 import Signup from "./components/pages/Signup";
 import EmailVerification from "./components/pages/EmailVerification";
 import Login from "./components/pages/Login";
-
+import RequestResetLink from "./components/pages/RequestResetLink";
+import ResetPassword from "./components/pages/ResetPassword";
 import { Toaster } from "sonner";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
@@ -44,6 +45,14 @@ function App() {
               element={<EmailVerification />}
             />
             <Route path="/login" element={<Login />} />
+            <Route
+              path="/candidate/forgot-password"
+              element={<RequestResetLink />}
+            />
+            <Route
+              path="/candidate/reset-password/:token"
+              element={<ResetPassword />}
+            />
           </Route>
           <Route path="*" element={<h1>404</h1>} />
         </Routes>

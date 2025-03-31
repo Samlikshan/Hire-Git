@@ -184,6 +184,33 @@ export const loginWithGoogle = async (token: string) => {
   }
 };
 
+export const sendResetPasswordLink = async (email: string) => {
+  try {
+    const response = await apiClient.post(
+      `${apiURL}/auth/generate-reset-password`,
+      { email }
+    );
+    return response;
+  } catch (error) {
+    return handleAxiosError(error);
+  }
+};
+
+export const resetPassword = async (token: string, newPassword: string) => {
+  try {
+    const response = await apiClient.post(
+      `${apiURL}/auth/reset-password/candidate`,
+      {
+        token,
+        newPassword,
+      }
+    );
+    return response;
+  } catch (error) {
+    return handleAxiosError(error);
+  }
+};
+
 export const logoutService = async () => {
   try {
     await apiClient.get(`${apiURL}/auth/logout`, { withCredentials: true });
