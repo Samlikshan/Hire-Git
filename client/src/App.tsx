@@ -7,6 +7,9 @@ import VerifyCompany from "@/components/ui/VerifyCompany";
 import CompanyLogin from "@/components/pages/CompanyLogin";
 import CompanyForgotPasswordForm from "@/components/forms/CompanyForgotPassword";
 import CompanyResetPassword from "@/components/forms/CompanyResetPassword";
+import Signup from "./components/pages/Signup";
+import EmailVerification from "./components/pages/EmailVerification";
+
 import { Toaster } from "sonner";
 
 function App() {
@@ -15,7 +18,10 @@ function App() {
       <Toaster richColors />
       <Routes>
         <Route element={<AuthRoutes />}>
+          {/* Admin */}
           <Route path="/admin-login" element={<AdminLogin />} />
+
+          {/* Company */}
           <Route path="/company-register" element={<CompanyRegister />} />
           <Route path="/verify-company/:token" element={<VerifyCompany />} />
           <Route path="company-login" element={<CompanyLogin />} />
@@ -27,6 +33,10 @@ function App() {
             path="/company/reset-password/:token"
             element={<CompanyResetPassword />}
           />
+
+          {/* Candidate */}
+          <Route path="/register" element={<Signup />} />
+          <Route path="/verify-email/:token" element={<EmailVerification />} />
         </Route>
         <Route path="*" element={<h1>404</h1>} />
       </Routes>

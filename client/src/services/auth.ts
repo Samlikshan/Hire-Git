@@ -124,6 +124,40 @@ export const companyResetPassword = async (
     return handleAxiosError(error);
   }
 };
+
+export const registerService = async (
+  name: string,
+  email: string,
+  password: string
+): Promise<AxiosResponse> => {
+  try {
+    const response = await apiClient.post(`${apiURL}/auth/register/candidate`, {
+      name,
+      email,
+      password,
+    });
+    return response;
+  } catch (error: unknown) {
+    return handleAxiosError(error);
+  }
+};
+
+export const verifyEmailService = async (
+  token: string
+): Promise<AxiosResponse> => {
+  try {
+    const response = await apiClient.post(
+      `${apiURL}/auth/verify-email/candidate`,
+      {
+        token,
+      }
+    );
+    return response;
+  } catch (error: unknown) {
+    return handleAxiosError(error);
+  }
+};
+
 export const logoutService = async () => {
   try {
     await apiClient.get(`${apiURL}/auth/logout`, { withCredentials: true });
