@@ -9,4 +9,9 @@ export interface ICandidateRepository {
     googleId?: string;
   }): Promise<Candidate>;
   findByEmail(email: string): Promise<Candidate | null>;
+  findById(id: string): Promise<Candidate | null>;
+  findByIdAndChangePassword(
+    id: string,
+    password: string
+  ): Promise<UpdateWriteOpResult>;
 }

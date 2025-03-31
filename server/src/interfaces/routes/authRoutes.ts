@@ -21,6 +21,11 @@ router.post("/register/candidate", authController.registerCandidate);
 router.post("/verify-email/candidate", authController.verifyCandidate);
 router.post("/login/candidate", authController.loginCandidate);
 router.post("/google-auth", authController.loginWithGoogle);
+router.post(
+  "/generate-reset-password",
+  authController.sendResetPasswordLinkCandidate
+);
+router.post("/reset-password/candidate", authController.resetPasswordCandidate);
 
 //company
 router.post(

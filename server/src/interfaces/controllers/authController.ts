@@ -24,6 +24,8 @@ import { RegisterCandidateUseCase } from "../../domain/usecases/Candidate/auth/R
 import { VerifyCandidateUseCase } from "../../domain/usecases/Candidate/auth/VerifyCandidateUseCase";
 import { LoginCandidateUseCase } from "../../domain/usecases/Candidate/auth/LoginUseCase";
 import { LoginWithGoogleUseCase } from "../../domain/usecases/Candidate/auth/LoginWithGoogleUseCase";
+import { ForgotPasswordSentEmailUseCase as CandidateFrogotPasswordSentEmailUseCase } from "../../domain/usecases/Candidate/auth/ForgotPasswordSentMailUseCase";
+import { ResetPasswordUseCase as CandidateResetPasswordUseCase } from "../../domain/usecases/Candidate/auth/ResetPasswordUseCase";
 
 const candidateRepository = new CandidateRepository();
 const companyRepository = new CompanyRepository();
@@ -88,6 +90,19 @@ export class AuthController {
     candidateRepository,
     new OAuth2Client(),
     this.jwtService
+  );
+  private candidateFrogotPasswordSentEmailUseCase =
+    new CandidateFrogotPasswordSentEmailUseCase(
+      candidateRepository,
+      this.jwtService,
+      this.emailService
+    );
+
+  private candidateResetPasswordUseCase = new CandidateResetPasswordUseCase(
+    candidateRepository,
+    this.jwtService,
+    this.hashService,
+    this.emailService
   );
 
   //admin
@@ -293,6 +308,38 @@ export class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
       res.json({ user: response.user, message: response.message });
+    } catch (error: unknown) {
+      next(error);
+    }
+  };
+
+  sendResetPasswordLinkCandidate = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { email } = req.body;
+      const response =
+        await this.candidateFrogotPasswordSentEmailUseCase.execute(email);
+      res.json({ message: response.message });
+    } catch (error: unknown) {
+      next(error);
+    }
+  };
+
+  resetPasswordCandidate = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { token, newPassword } = req.body;
+      const response = await this.candidateResetPasswordUseCase.execute(
+        token,
+        newPassword
+      );
+      res.json({ message: response.message });
     } catch (error: unknown) {
       next(error);
     }

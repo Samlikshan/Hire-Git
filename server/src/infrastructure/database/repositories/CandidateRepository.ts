@@ -16,4 +16,15 @@ export class CandidateRepository implements ICandidateRepository {
   async findByEmail(email: string): Promise<Candidate | null> {
     return await CandidateModel.findOne({ email: email });
   }
+
+  async findById(id: string) {
+    return await CandidateModel.findOne({ _id: id });
+  }
+
+  async findByIdAndChangePassword(id: string, password: string) {
+    return await CandidateModel.updateOne(
+      { _id: id },
+      { $set: { password: password } }
+    );
+  }
 }
