@@ -20,4 +20,18 @@ export interface ICompanyRepository {
   ): Promise<UpdateWriteOpResult>;
   listByStatus(): Promise<Company[]>;
   listAllCompany(): Promise<Company[]>;
+  findByIdAndUpdateProfile(
+    id: string,
+    logo: string,
+    name: string,
+    description: string,
+    industry: string,
+    companySize: string,
+    founded: string,
+    website: string,
+    headquarters: string,
+    linkedIn: string,
+    twitter: string,
+    about: string
+  ): Promise<UpdateWriteOpResult>;
 }
