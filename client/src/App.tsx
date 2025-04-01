@@ -20,6 +20,8 @@ import CompanyTable from "./components/ui/compnay-table";
 import CandidateTable from "./components/ui/candidate-table";
 import CompanyStatusRoutes from "./routes/CompanyStatusRoutes";
 import CompanyStatus from "./components/pages/CompanyStatus";
+import CompanyRoutes from "./routes/CompanyRoutes";
+import Company from "./components/pages/Company";
 
 function App() {
   return (
@@ -73,6 +75,9 @@ function App() {
             </Route>
           </Route>
 
+          <Route element={<CompanyRoutes />}>
+            <Route path="/company" element={<Company />}></Route>
+          </Route>
           <Route path="*" element={<h1>404</h1>} />
         </Routes>
       </GoogleOAuthProvider>
