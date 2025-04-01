@@ -45,6 +45,7 @@ interface UserState {
   role: string | null;
   userData: UserData | null;
 }
+
 const initialState: UserState = {
   isAuthenticated: false,
   role: null,
@@ -55,6 +56,7 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     login: (state, action: PayloadAction<UserData>) => {
+      console.log(action.payload, "payload");
       state.isAuthenticated = true;
       state.role = action.payload.role;
       state.userData = action.payload;
@@ -65,8 +67,14 @@ const userSlice = createSlice({
       state.userData = null;
       logoutService();
     },
+    updateUserData: (state, action: PayloadAction<Partial<UserData>>) => {
+      console.log(action, "updating exp");
+      if (state.userData) {
+        state.userData = { ...state.userData, ...action.payload };
+      }
+    },
   },
 });
 
-export const { login, logout } = userSlice.actions;
+export const { login, logout, updateUserData } = userSlice.actions;
 export default userSlice.reducer;
