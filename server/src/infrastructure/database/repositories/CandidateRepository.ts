@@ -27,4 +27,7 @@ export class CandidateRepository implements ICandidateRepository {
       { $set: { password: password } }
     );
   }
+  async listCandidates(): Promise<Candidate[]> {
+    return await CandidateModel.find();
+  }
 }

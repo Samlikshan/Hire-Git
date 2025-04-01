@@ -14,4 +14,5 @@ export interface ICandidateRepository {
     id: string,
     password: string
   ): Promise<UpdateWriteOpResult>;
+  listCandidates(): Promise<Candidate[]>;
 }

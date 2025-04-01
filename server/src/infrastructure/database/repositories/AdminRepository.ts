@@ -3,11 +3,13 @@ import { Admin } from "../../../domain/entities/Admin";
 import { IAdminRepository } from "../../../domain/repositories/IAdminRepository";
 import { AdminModel } from "../models/adminModel";
 import { CompanyModel } from "../models/companyModel";
+import { CandidateModel } from "../models/candidateModel";
 
 export class AdminRepository implements IAdminRepository {
   async findByEmail(email: string): Promise<Admin | null> {
     return AdminModel.findOne({ email: email });
   }
+
   async AcceptCompany(
     companyId: string,
     adminId: string
@@ -37,6 +39,13 @@ export class AdminRepository implements IAdminRepository {
           "accountStatus.verifiedBy": adminId,
         },
       }
+    );
+  }
+
+  async blockCandidate(candidateId: string, status: boolean) {
+    return CandidateModel.updateOne(
+      { _id: candidateId },
+      { $set: { isBlocked: status } }
     );
   }
 }

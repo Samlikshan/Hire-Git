@@ -18,4 +18,22 @@ router.post(
   adminMiddleWare(),
   adminController.reveiwCompany
 );
+router.get(
+  "/pending-companies",
+  verifyToken(),
+  adminMiddleWare(),
+  adminController.listPendingCompanies
+);
+router.get(
+  "/list-candidates",
+  verifyToken(),
+  adminMiddleWare(),
+  adminController.listCandidates
+);
+router.post(
+  "/block-candidates",
+  verifyToken(),
+  adminMiddleWare(),
+  adminController.blockCandidate
+);
 export default router;
