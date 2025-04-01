@@ -12,4 +12,8 @@ export interface IAdminRepository {
     adminId: string,
     description: string
   ): Promise<UpdateWriteOpResult>;
+  blockCandidate(
+    candidateId: string,
+    status: boolean
+  ): Promise<UpdateWriteOpResult>;
 }
