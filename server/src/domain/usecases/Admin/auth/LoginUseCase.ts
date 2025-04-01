@@ -34,10 +34,12 @@ export class LoginAdminUseCase {
     const accessToken = this.jwtService.generateAccessToken({
       id: user.id,
       email: user.email,
+      role: "admin",
     });
     const refreshToken = this.jwtService.generateRefreshToken({
       id: user.id,
       email: user.email,
+      role: "admin",
     });
 
     return { user, message: "Login successfull", accessToken, refreshToken };

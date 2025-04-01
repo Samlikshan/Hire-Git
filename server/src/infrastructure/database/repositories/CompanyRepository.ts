@@ -40,4 +40,10 @@ export class CompanyRepository implements ICompanyRepository {
       { $set: { password: newPassword } }
     );
   }
+  async listByStatus() {
+    return await CompanyModel.find({ "accountStatus.status": "Pending" });
+  }
+  async listAllCompany(): Promise<Company[]> {
+    return await CompanyModel.find();
+  }
 }

@@ -18,4 +18,6 @@ export interface ICompanyRepository {
     id: string,
     newPassword: string
   ): Promise<UpdateWriteOpResult>;
+  listByStatus(): Promise<Company[]>;
+  listAllCompany(): Promise<Company[]>;
 }
