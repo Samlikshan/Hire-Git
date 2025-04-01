@@ -26,6 +26,8 @@ import { LoginCandidateUseCase } from "../../domain/usecases/Candidate/auth/Logi
 import { LoginWithGoogleUseCase } from "../../domain/usecases/Candidate/auth/LoginWithGoogleUseCase";
 import { ForgotPasswordSentEmailUseCase as CandidateFrogotPasswordSentEmailUseCase } from "../../domain/usecases/Candidate/auth/ForgotPasswordSentMailUseCase";
 import { ResetPasswordUseCase as CandidateResetPasswordUseCase } from "../../domain/usecases/Candidate/auth/ResetPasswordUseCase";
+import { HttpException } from "../../domain/enums/http-exception";
+import { HttpStatus } from "../../domain/enums/http-status.enum";
 
 const candidateRepository = new CandidateRepository();
 const companyRepository = new CompanyRepository();
@@ -341,6 +343,39 @@ export class AuthController {
       );
       res.json({ message: response.message });
     } catch (error: unknown) {
+      next(error);
+    }
+  };
+
+  refreshToken = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const refreshToken = req.cookies.refreshToken;
+      if (!refreshToken) {
+        throw new HttpException(
+          "Refresh token is required",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+      let decoded = this.jwtService.verifyToken(refreshToken);
+      if (!decoded) {
+        throw new HttpException(
+          "Invalid Refresh token",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+      const accessToken = this.jwtService.generateAccessToken({
+        id: decoded?.id,
+        email: decoded?.email,
+      });
+
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 15 * 60 * 60 * 1000,
+      });
+      res.json({ message: "Token refreshed succssfully" });
+    } catch (error) {
       next(error);
     }
   };
