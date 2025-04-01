@@ -8,6 +8,7 @@ export const app = express();
 
 //routes
 import authRouter from "../interfaces/routes/authRoutes";
+import adminRouter from "../interfaces/routes/adminRoutes";
 import { errorMiddleware } from "./middlewares/errorMiddleware";
 
 app.use(cors({ origin: config.env.clientUrl, credentials: true }));
@@ -17,5 +18,6 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 
 app.use("/api/auth", authRouter);
+app.use("/api/admin", adminRouter);
 
 app.use(errorMiddleware);
