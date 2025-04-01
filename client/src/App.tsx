@@ -18,6 +18,8 @@ import AdminRoutes from "./routes/AdminRoutes";
 import Admin from "./components/pages/Admin";
 import CompanyTable from "./components/ui/compnay-table";
 import CandidateTable from "./components/ui/candidate-table";
+import CompanyStatusRoutes from "./routes/CompanyStatusRoutes";
+import CompanyStatus from "./components/pages/CompanyStatus";
 
 function App() {
   return (
@@ -59,6 +61,10 @@ function App() {
             />
           </Route>
 
+          <Route element={<CompanyStatusRoutes />}>
+            <Route path="/company-status" element={<CompanyStatus />} />
+          </Route>
+
           <Route element={<AdminRoutes />}>
             <Route path="/admin" element={<Admin />}>
               <Route path="dashboard" element={<h1>Dashboard</h1>} />
@@ -66,6 +72,7 @@ function App() {
               <Route path="candidates" element={<CandidateTable />} />
             </Route>
           </Route>
+
           <Route path="*" element={<h1>404</h1>} />
         </Routes>
       </GoogleOAuthProvider>
