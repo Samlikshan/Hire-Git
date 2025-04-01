@@ -28,9 +28,11 @@ export class CompanyRepository implements ICompanyRepository {
       $or: [{ email: email }, { name: name }],
     });
   }
+
   async findById(id: string): Promise<Company | null> {
     return await CompanyModel.findById(id);
   }
+
   async findByIdAndChangePassword(
     id: string,
     newPassword: string
@@ -40,10 +42,47 @@ export class CompanyRepository implements ICompanyRepository {
       { $set: { password: newPassword } }
     );
   }
+
   async listByStatus() {
     return await CompanyModel.find({ "accountStatus.status": "Pending" });
   }
+
   async listAllCompany(): Promise<Company[]> {
     return await CompanyModel.find();
+  }
+
+  async findByIdAndUpdateProfile(
+    id: string,
+    logo: string,
+    name: string,
+    description: string,
+    industry: string,
+    companySize: string,
+    founded: string,
+    website: string,
+    headquarters: string,
+    linkedIn: string,
+    twitter: string,
+    about: string
+  ): Promise<UpdateWriteOpResult> {
+    console.log(id, "from repository", logo, linkedIn, twitter);
+    return await CompanyModel.updateOne(
+      { _id: id },
+      {
+        $set: {
+          logo: logo,
+          name: name,
+          description: description,
+          industry: industry,
+          companySize: companySize,
+          founded: founded,
+          website: website,
+          headquarters: headquarters,
+          "socialLinks.linkedIn": linkedIn,
+          "socialLinks.twitter": twitter,
+          about: about,
+        },
+      }
+    );
   }
 }
