@@ -19,3 +19,21 @@ export const reveiwCompanyService = async (
   });
   return response;
 };
+
+export const listCandidatesService = async () => {
+  const response = await axiosInstance.get(`/admin/list-candidates`, {
+    withCredentials: true,
+  });
+  return response;
+};
+
+export const blockCandidateService = async (
+  candidateId: string,
+  status: boolean
+) => {
+  const response = await axiosInstance.post(`/admin/block-candidates`, {
+    candidateId,
+    status,
+  });
+  return response;
+};
