@@ -42,5 +42,6 @@ router.post(
 );
 router.post("/company/reset-password", authController.resetPasswordCompany);
 
+router.get("/refresh-token", authController.refreshToken);
 router.get("/logout", authController.logout);
 export default router;
