@@ -5,12 +5,17 @@ import { CreateJobUseCase } from "../../../domain/usecases/company/job/CreateJob
 import { JobRepository } from "../../../infrastructure/database/repositories/JobRepository";
 import { ListJobUseCase } from "../../../domain/usecases/company/job/ListJobsUseCase";
 import { GetJobUseCase } from "../../../domain/usecases/company/job/GetJobUseCase";
+import { EditJobUseCase } from "../../../domain/usecases/company/job/EditJobUseCase";
+import { DeleteJobuseCase } from "../../../domain/usecases/company/job/DeleteJobUseCase";
+
 export class JobController {
   private jobRepository = new JobRepository();
 
   private createJobUseCase = new CreateJobUseCase(this.jobRepository);
   private listJobUseCase = new ListJobUseCase(this.jobRepository);
   private getJobUseCase = new GetJobUseCase(this.jobRepository);
+  private editJobUseCase = new EditJobUseCase(this.jobRepository);
+  private deleteJobUseCase = new DeleteJobuseCase(this.jobRepository);
   createJob = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
@@ -69,6 +74,60 @@ export class JobController {
       const response = await this.getJobUseCase.execute(jobId);
 
       res.json({ message: response.message, job: response.job });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateJob = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const {
+        _id,
+        title,
+        type,
+        deadline,
+        company,
+        department,
+        description,
+        experienceLevel,
+        location,
+        requiredSkills,
+        requirements,
+        responsibilities,
+        salary,
+        status,
+        tags,
+      } = req.body;
+
+      const response = await this.editJobUseCase.execute({
+        _id,
+        title,
+        type,
+        deadline,
+        company,
+        department,
+        description,
+        experienceLevel,
+        location,
+        requiredSkills,
+        requirements,
+        responsibilities,
+        salary,
+        status,
+        tags,
+      });
+
+      res.json({ message: response.message });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  deleteJob = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { jobId } = req.params;
+      const response = await this.deleteJobUseCase.execute(jobId);
+      res.json({ message: response.message });
     } catch (error) {
       next(error);
     }

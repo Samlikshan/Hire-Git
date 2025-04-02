@@ -24,4 +24,6 @@ router.post(
 router.get("/jobs/:companyId", jobController.listJobs);
 router.post("/job", jobController.createJob);
 router.get("/job/:jobId", jobController.getJob);
+router.put("/job", jobController.updateJob);
+router.delete("/job/:jobId", jobController.deleteJob);
 export default router;
