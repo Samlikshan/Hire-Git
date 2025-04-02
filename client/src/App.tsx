@@ -24,6 +24,7 @@ import CompanyRoutes from "./routes/CompanyRoutes";
 import Company from "./components/pages/Company";
 import CompanyProfile from "./components/pages/company-profile";
 import JobsPage from "./components/pages/JobsPage";
+import JobDetailsCompany from "./components/pages/JobDetailsCompany";
 
 function App() {
   return (
@@ -81,6 +82,7 @@ function App() {
             <Route path="/company" element={<Company />}>
               <Route path="profile" element={<CompanyProfile />} />
               <Route path="jobs" element={<JobsPage />} />
+              <Route path="job/:jobId" element={<JobDetailsCompany />} />
             </Route>
           </Route>
           <Route path="*" element={<h1>404</h1>} />
