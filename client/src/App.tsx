@@ -25,6 +25,8 @@ import Company from "./components/pages/Company";
 import CompanyProfile from "./components/pages/company-profile";
 import JobsPage from "./components/pages/JobsPage";
 import JobDetailsCompany from "./components/pages/JobDetailsCompany";
+import ProtectedRoute from "./routes/ProtectedRoutes";
+import CandidateJobListPage from "./components/pages/CandidateJobList";
 
 function App() {
   return (
@@ -85,6 +87,11 @@ function App() {
               <Route path="job/:jobId" element={<JobDetailsCompany />} />
             </Route>
           </Route>
+
+          <Route element={<ProtectedRoute />}>
+            <Route path="/jobs" element={<CandidateJobListPage />} />
+          </Route>
+
           <Route path="*" element={<h1>404</h1>} />
         </Routes>
       </GoogleOAuthProvider>

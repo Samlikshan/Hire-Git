@@ -1,4 +1,4 @@
-import { Job } from "@/types/job";
+import { CandidateJob, Job } from "@/types/job";
 import axiosInstance from "./axiosInstance";
 
 export const listCompanyJobsService = async (companyId: string) => {
@@ -23,5 +23,35 @@ export const updateJobService = async (jobsData: Job) => {
 
 export const deleteJobPostService = async (jobId: string) => {
   const response = await axiosInstance.delete(`/company/job/${jobId}`);
+  return response;
+};
+
+export const listCandidateJobsService = async (params: {
+  page: number;
+  limit: number;
+  search?: string;
+  types?: string[];
+  departments?: string[];
+  locations?: string[];
+  experience?: string[];
+  tags?: string[];
+}) => {
+  const queryParams = new URLSearchParams({
+    page: params.page.toString(),
+    limit: params.limit.toString(),
+    ...(params.search && { search: params.search }),
+    ...(params.types && { types: params.types.join(",") }),
+    ...(params.departments && { departments: params.departments.join(",") }),
+    ...(params.locations && { locations: params.locations.join(",") }),
+    ...(params.experience && { experience: params.experience.join(",") }),
+    ...(params.tags && { tags: params.tags.join(",") }),
+  });
+
+  const response = await axiosInstance.get<{
+    jobs: CandidateJob[];
+    total: number;
+    page: number;
+    pages: number;
+  }>(`/candidate/jobs?${queryParams}`);
   return response;
 };

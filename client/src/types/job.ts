@@ -25,3 +25,12 @@ export type JobFilter = {
   experience?: string[];
   status?: ("active" | "draft" | "closed")[];
 };
+
+export interface CandidateJob extends Job {
+  company: {
+    _id: string;
+    name: string;
+    logo: string;
+    location: string;
+  };
+}
