@@ -10,6 +10,7 @@ export const app = express();
 import authRouter from "../interfaces/routes/authRoutes";
 import adminRouter from "../interfaces/routes/adminRoutes";
 import companyRouter from "../interfaces/routes/companyRoutes";
+import userRouter from "../interfaces/routes/userRoutes";
 import { errorMiddleware } from "./middlewares/errorMiddleware";
 
 app.use(cors({ origin: config.env.clientUrl, credentials: true }));
@@ -21,5 +22,6 @@ app.use(morgan("dev"));
 app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/company", companyRouter);
+app.use("/api/candidate", userRouter);
 
 app.use(errorMiddleware);

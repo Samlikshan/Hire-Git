@@ -7,4 +7,16 @@ export interface IJobRepository {
   findById(id: string): Promise<Job | null>;
   updateJob(updatedDetails: Job): Promise<UpdateWriteOpResult>;
   deleteJobById(jobId: string): Promise<UpdateWriteOpResult>;
+  listAllJobs(params: {
+    page: number;
+    limit: number;
+    search: string;
+    filters: {
+      types: string[];
+      departments: string[];
+      locations: string[];
+      experience: string[];
+      tags: string[];
+    };
+  }): Promise<{ jobs: Job[]; total: number }>;
 }
