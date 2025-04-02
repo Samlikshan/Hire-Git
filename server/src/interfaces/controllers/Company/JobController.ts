@@ -4,12 +4,13 @@ import { CreateJobUseCase } from "../../../domain/usecases/company/job/CreateJob
 
 import { JobRepository } from "../../../infrastructure/database/repositories/JobRepository";
 import { ListJobUseCase } from "../../../domain/usecases/company/job/ListJobsUseCase";
+import { GetJobUseCase } from "../../../domain/usecases/company/job/GetJobUseCase";
 export class JobController {
   private jobRepository = new JobRepository();
 
   private createJobUseCase = new CreateJobUseCase(this.jobRepository);
   private listJobUseCase = new ListJobUseCase(this.jobRepository);
-
+  private getJobUseCase = new GetJobUseCase(this.jobRepository);
   createJob = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
@@ -57,6 +58,17 @@ export class JobController {
 
       const response = await this.listJobUseCase.execute(companyId);
       res.json({ message: response.message, jobs: response.jobs });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getJob = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const jobId = req.params.jobId;
+      const response = await this.getJobUseCase.execute(jobId);
+
+      res.json({ message: response.message, job: response.job });
     } catch (error) {
       next(error);
     }
