@@ -3,11 +3,12 @@ import { Job } from "../../../domain/entities/Job";
 import { CreateJobUseCase } from "../../../domain/usecases/company/job/CreateJobUseCase";
 
 import { JobRepository } from "../../../infrastructure/database/repositories/JobRepository";
-
+import { ListJobUseCase } from "../../../domain/usecases/company/job/ListJobsUseCase";
 export class JobController {
   private jobRepository = new JobRepository();
 
   private createJobUseCase = new CreateJobUseCase(this.jobRepository);
+  private listJobUseCase = new ListJobUseCase(this.jobRepository);
 
   createJob = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -45,6 +46,17 @@ export class JobController {
       });
 
       res.json({ message: response.message, job: response.job });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listJobs = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { companyId } = req.params;
+
+      const response = await this.listJobUseCase.execute(companyId);
+      res.json({ message: response.message, jobs: response.jobs });
     } catch (error) {
       next(error);
     }

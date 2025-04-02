@@ -21,5 +21,6 @@ router.post(
   profileController.updateProfile
 );
 
+router.get("/jobs/:companyId", jobController.listJobs);
 router.post("/job", jobController.createJob);
 export default router;
