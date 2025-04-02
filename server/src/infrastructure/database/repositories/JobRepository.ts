@@ -11,4 +11,7 @@ export class JobRepository implements IJobRepository {
       createdAt: -1,
     });
   }
+  async findById(id: string): Promise<Job | null> {
+    return JobModel.findOne({ _id: id }).populate("company");
+  }
 }
