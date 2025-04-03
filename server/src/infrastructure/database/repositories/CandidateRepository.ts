@@ -30,4 +30,33 @@ export class CandidateRepository implements ICandidateRepository {
   async listCandidates(): Promise<Candidate[]> {
     return await CandidateModel.find();
   }
+  async findAndUpdateProfile(
+    id: string,
+    name: string,
+    profession: string,
+    bio: string,
+    profileImage: string,
+    skills: [],
+    resume: string,
+    gitHub: string,
+    linkedIn: string
+  ): Promise<UpdateWriteOpResult> {
+    return await CandidateModel.updateOne(
+      {
+        _id: id,
+      },
+      {
+        $set: {
+          name: name,
+          bio: bio,
+          profession: profession,
+          skills: skills,
+          resume: resume,
+          profileImage: profileImage,
+          "socialLinks.linkedIn": linkedIn,
+          "socialLinks.gitHub": gitHub,
+        },
+      }
+    );
+  }
 }
