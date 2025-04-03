@@ -22,9 +22,10 @@ import { CandidateJob } from "@/types/job";
 import {
   applyJobService,
   getJobDetailsService,
+  getRelatedJobsService,
   isAppliedJobService,
 } from "@/services/job";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getTimeAgo } from "@/lib/utils";
 import { JobApplicationForm } from "../forms/JobApplicationForm";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
@@ -36,6 +37,7 @@ export default function JobDetailsCandidate() {
   const navigate = useNavigate();
 
   const [job, setJob] = useState<CandidateJob>();
+  const [relatedJobs, setRelatedjobs] = useState<CandidateJob[]>([]);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
@@ -67,9 +69,20 @@ export default function JobDetailsCandidate() {
         console.error("Error checking is applied for job:", error);
       }
     };
-
+    const getRelatedJobs = async () => {
+      if (!jobId) return;
+      try {
+        const response = await getRelatedJobsService(jobId);
+        if (response.status == 200) {
+          setRelatedjobs(response.data.relatedJobs);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
     getJobDetails();
     isApplied();
+    getRelatedJobs();
   }, [jobId, user]);
 
   if (!job) {
@@ -133,78 +146,78 @@ export default function JobDetailsCandidate() {
     }
   };
 
-  // const SimilarJobCard = ({ similarJob }: { similarJob: typeof job }) => (
-  //   <motion.div
-  //     initial={{ opacity: 0, y: 10 }}
-  //     animate={{ opacity: 1, y: 0 }}
-  //     className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-all"
-  //   >
-  //     <div className="flex items-center gap-3 mb-3">
-  //       <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-  //         {/* <Building2 className="w-5 h-5 text-gray-600" /> */}
-  //         <img
-  //           className="h-full w-full rounded-lg"
-  //           src={`${import.meta.env.VITE_S3_PATH}/${similarJob.company.logo}`}
-  //           alt=""
-  //         />
-  //       </div>
-  //       <div>
-  //         <h3 className="font-medium text-gray-900">
-  //           {similarJob.company.name}
-  //         </h3>
-  //         <div className="flex items-center gap-1 text-sm text-gray-500">
-  //           <MapPin className="w-3 h-3" />
-  //           {similarJob.location}
-  //         </div>
-  //       </div>
-  //     </div>
+  const SimilarJobCard = ({ similarJob }: { similarJob: typeof job }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-all"
+    >
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+          {/* <Building2 className="w-5 h-5 text-gray-600" /> */}
+          <img
+            className="h-full w-full rounded-lg"
+            src={`${import.meta.env.VITE_S3_PATH}/${similarJob.company.logo}`}
+            alt=""
+          />
+        </div>
+        <div>
+          <h3 className="font-medium text-gray-900">
+            {similarJob.company.name}
+          </h3>
+          <div className="flex items-center gap-1 text-sm text-gray-500">
+            <MapPin className="w-3 h-3" />
+            {similarJob.location}
+          </div>
+        </div>
+      </div>
 
-  //     <Link to={`/jobs/${similarJob._id}`} className="block">
-  //       <h4 className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors">
-  //         {similarJob.title}
-  //       </h4>
-  //     </Link>
+      <Link to={`/jobs/${similarJob._id}`} className="block">
+        <h4 className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors">
+          {similarJob.title}
+        </h4>
+      </Link>
 
-  //     <div className="flex flex-wrap gap-2 mb-3">
-  //       <Badge className={getJobTypeColor(similarJob.type)}>
-  //         {similarJob.type}
-  //       </Badge>
-  //       <Badge variant="outline" className="flex items-center gap-1">
-  //         <DollarSign className="w-3 h-3" />
-  //         {similarJob.salary}
-  //       </Badge>
-  //     </div>
+      <div className="flex flex-wrap gap-2 mb-3">
+        <Badge className={getJobTypeColor(similarJob.type)}>
+          {similarJob.type}
+        </Badge>
+        <Badge variant="outline" className="flex items-center gap-1">
+          <DollarSign className="w-3 h-3" />
+          {similarJob.salary}
+        </Badge>
+      </div>
 
-  //     <div className="flex flex-wrap gap-1 mb-3">
-  //       {similarJob.tags?.slice(0, 3).map((tag, i) => (
-  //         <Badge key={i} variant="secondary" className="text-xs">
-  //           {tag}
-  //         </Badge>
-  //       ))}
-  //       {(similarJob.tags?.length || 0) > 3 && (
-  //         <span className="text-xs text-gray-500">
-  //           +{(similarJob.tags?.length || 0) - 3} more
-  //         </span>
-  //       )}
-  //     </div>
+      <div className="flex flex-wrap gap-1 mb-3">
+        {similarJob.tags?.slice(0, 3).map((tag, i) => (
+          <Badge key={i} variant="secondary" className="text-xs">
+            {tag}
+          </Badge>
+        ))}
+        {(similarJob.tags?.length || 0) > 3 && (
+          <span className="text-xs text-gray-500">
+            +{(similarJob.tags?.length || 0) - 3} more
+          </span>
+        )}
+      </div>
 
-  //     <div className="flex items-center justify-between text-sm text-gray-500">
-  //       <div className="flex items-center gap-1">
-  //         <Calendar className="w-4 h-4" />
-  //         {getTimeAgo(similarJob.createdAt)}
-  //       </div>
-  //       <Link to={`/jobs/${similarJob._id}`}>
-  //         <Button
-  //           variant="ghost"
-  //           size="sm"
-  //           className="text-blue-600 hover:text-blue-700"
-  //         >
-  //           View Details →
-  //         </Button>
-  //       </Link>
-  //     </div>
-  //   </motion.div>
-  // );
+      <div className="flex items-center justify-between text-sm text-gray-500">
+        <div className="flex items-center gap-1">
+          <Calendar className="w-4 h-4" />
+          {getTimeAgo(similarJob.createdAt)}
+        </div>
+        <Link to={`/jobs/${similarJob._id}`}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-blue-600 hover:text-blue-700"
+          >
+            View Details →
+          </Button>
+        </Link>
+      </div>
+    </motion.div>
+  );
 
   return (
     <div className="flex-1 p-6 bg-gray-50 overflow-auto">
@@ -226,7 +239,7 @@ export default function JobDetailsCandidate() {
           >
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold mb-4">Similar Jobs</h2>
-              {/* <div className="space-y-4">
+              <div className="space-y-4">
                 {relatedJobs
                   .filter((j) => j._id !== jobId)
                   .slice(0, 5)
@@ -236,7 +249,7 @@ export default function JobDetailsCandidate() {
                       similarJob={similarJob}
                     />
                   ))}
-              </div> */}
+              </div>
             </div>
           </motion.div>
           <JobApplicationForm
