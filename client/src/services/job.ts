@@ -55,3 +55,25 @@ export const listCandidateJobsService = async (params: {
   }>(`/candidate/jobs?${queryParams}`);
   return response;
 };
+
+export const applyJobService = async (data: object, jobId: string) => {
+  const response = await axiosInstance.post(
+    `/candidate/job/apply/${jobId}`,
+
+    data,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    }
+  );
+  return response;
+};
+
+export const isAppliedJobService = async (
+  jobId: string,
+  candidateId: string
+) => {
+  const response = await axiosInstance.get(
+    `/candidate/job/applied/${jobId}/${candidateId}`
+  );
+  return response;
+};
