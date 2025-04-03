@@ -1,13 +1,14 @@
 import { NextFunction, Request, response, Response } from "express";
 import { ListJobsUseCase } from "../../../domain/usecases/Candidate/Job/ListJobUseCase";
-import { JobRepository } from "../../../infrastructure/database/repositories/JobRepository";
+import { RelatedJobsUseCase } from "../../../domain/usecases/Candidate/Job/RelatedJobsUseCase";
 
+import { JobRepository } from "../../../infrastructure/database/repositories/JobRepository";
 import { HttpStatus } from "../../../domain/enums/http-status.enum";
 
 export class JobController {
   private jobRepository = new JobRepository();
   private listJobsUseCase = new ListJobsUseCase(this.jobRepository);
-
+  private relatedJobsUseCase = new RelatedJobsUseCase(this.jobRepository);
   listJobs = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
@@ -46,6 +47,19 @@ export class JobController {
         total: response.total,
         page: response.page,
         pages: response.pages,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getRelatedJobs = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { jobId } = req.params;
+      const response = await this.relatedJobsUseCase.execute(jobId);
+      res.json({
+        message: response.message,
+        relatedJobs: response.relatedJobs,
       });
     } catch (error) {
       next(error);
