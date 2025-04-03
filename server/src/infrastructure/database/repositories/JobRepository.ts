@@ -84,4 +84,16 @@ export class JobRepository implements IJobRepository {
 
     return { jobs, total };
   }
+  async findTagsById(
+    id: string
+  ): Promise<Partial<Job> | { tags: string[]; _id: string } | null> {
+    return JobModel.findOne({ _id: id }).select("tags");
+  }
+
+  async findRelatedJobsByTags(
+    tags: string[],
+    currentJobId: string
+  ): Promise<Job[] | []> {
+    return JobModel.find({ _id: { $ne: currentJobId }, tags: { $in: tags } });
+  }
 }

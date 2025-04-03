@@ -32,4 +32,6 @@ router.get(
   jobApplicationController.isApplied
 );
 
+router.get("/job/related/:jobId", jobController.getRelatedJobs);
+
 export default router;

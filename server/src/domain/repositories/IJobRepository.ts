@@ -19,4 +19,11 @@ export interface IJobRepository {
       tags: string[];
     };
   }): Promise<{ jobs: Job[]; total: number }>;
+  findTagsById(
+    id: string
+  ): Promise<Partial<Job> | { tags: string[]; _id: string } | null>;
+  findRelatedJobsByTags(
+    tags: string[],
+    currentJobId: string
+  ): Promise<Job[] | []>;
 }
