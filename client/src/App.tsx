@@ -28,6 +28,7 @@ import JobDetailsCompany from "./components/pages/JobDetailsCompany";
 import ProtectedRoute from "./routes/ProtectedRoutes";
 import CandidateJobListPage from "./components/pages/CandidateJobList";
 import JobDetailsCandidate from "./components/ui/JobDetailsCandidate";
+import Home from "./components/pages/CandidateHomePage";
 
 function App() {
   return (
@@ -68,6 +69,8 @@ function App() {
               element={<ResetPassword />}
             />
           </Route>
+
+          <Route path="/" element={<Home />} />
 
           <Route element={<CompanyStatusRoutes />}>
             <Route path="/company-status" element={<CompanyStatus />} />
