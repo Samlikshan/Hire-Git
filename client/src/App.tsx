@@ -29,6 +29,7 @@ import ProtectedRoute from "./routes/ProtectedRoutes";
 import CandidateJobListPage from "./components/pages/CandidateJobList";
 import JobDetailsCandidate from "./components/ui/JobDetailsCandidate";
 import Home from "./components/pages/CandidateHomePage";
+import Profile, { ProfileContent } from "./components/pages/Profile";
 
 function App() {
   return (
@@ -95,6 +96,9 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/jobs" element={<CandidateJobListPage />} />
             <Route path="/jobs/:jobId" element={<JobDetailsCandidate />} />
+            <Route path="/profile" element={<Profile />}>
+              <Route index element={<ProfileContent />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<h1>404</h1>} />
