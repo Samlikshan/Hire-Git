@@ -96,4 +96,10 @@ export class JobRepository implements IJobRepository {
   ): Promise<Job[] | []> {
     return JobModel.find({ _id: { $ne: currentJobId }, tags: { $in: tags } });
   }
+  async getTrendingJobs(jobIds: string[]): Promise<Job[]> {
+    return JobModel.find({ _id: { $in: jobIds } }).populate(
+      "company",
+      "_id name logo"
+    );
+  }
 }

@@ -4,11 +4,18 @@ import { RelatedJobsUseCase } from "../../../domain/usecases/Candidate/Job/Relat
 
 import { JobRepository } from "../../../infrastructure/database/repositories/JobRepository";
 import { HttpStatus } from "../../../domain/enums/http-status.enum";
+import { TrendingJobsUseCase } from "../../../domain/usecases/Candidate/Job/TrendingJobsUseCase";
+import { JobApplicationRepository } from "../../../infrastructure/database/repositories/JobApplicationRepository";
 
 export class JobController {
   private jobRepository = new JobRepository();
+  private jobApplicationRepository = new JobApplicationRepository();
   private listJobsUseCase = new ListJobsUseCase(this.jobRepository);
   private relatedJobsUseCase = new RelatedJobsUseCase(this.jobRepository);
+  private trendingJobsUseCase = new TrendingJobsUseCase(
+    this.jobApplicationRepository,
+    this.jobRepository
+  );
   listJobs = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
@@ -60,6 +67,17 @@ export class JobController {
       res.json({
         message: response.message,
         relatedJobs: response.relatedJobs,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  getTrendingJobs = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const response = await this.trendingJobsUseCase.execute();
+      res.json({
+        message: response.message,
+        trendingJobs: response.trendingJobs,
       });
     } catch (error) {
       next(error);
