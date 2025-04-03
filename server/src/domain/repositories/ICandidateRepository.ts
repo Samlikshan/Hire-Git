@@ -15,4 +15,15 @@ export interface ICandidateRepository {
     password: string
   ): Promise<UpdateWriteOpResult>;
   listCandidates(): Promise<Candidate[]>;
+  findAndUpdateProfile(
+    id: string,
+    name: string,
+    profession: string,
+    bio: string,
+    profileImage: string,
+    skills: string[],
+    resume: string,
+    gitHub: string,
+    linkedIn: string
+  ): Promise<UpdateWriteOpResult>;
 }
