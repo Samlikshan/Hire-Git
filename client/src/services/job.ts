@@ -82,3 +82,8 @@ export const getRelatedJobsService = async (jobid: string) => {
   const response = await axiosInstance.get(`/candidate/job/related/${jobid}`);
   return response;
 };
+
+export const getTrendingJobsService = async () => {
+  const response = await axiosInstance.get("/candidate/job/trending");
+  return response;
+};
