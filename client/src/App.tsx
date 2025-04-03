@@ -27,6 +27,7 @@ import JobsPage from "./components/pages/JobsPage";
 import JobDetailsCompany from "./components/pages/JobDetailsCompany";
 import ProtectedRoute from "./routes/ProtectedRoutes";
 import CandidateJobListPage from "./components/pages/CandidateJobList";
+import JobDetailsCandidate from "./components/ui/JobDetailsCandidate";
 
 function App() {
   return (
@@ -90,6 +91,7 @@ function App() {
 
           <Route element={<ProtectedRoute />}>
             <Route path="/jobs" element={<CandidateJobListPage />} />
+            <Route path="/jobs/:jobId" element={<JobDetailsCandidate />} />
           </Route>
 
           <Route path="*" element={<h1>404</h1>} />
