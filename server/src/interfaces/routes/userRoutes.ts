@@ -33,5 +33,6 @@ router.get(
 );
 
 router.get("/job/related/:jobId", jobController.getRelatedJobs);
+router.get("/job/trending", jobController.getTrendingJobs);
 
 export default router;

@@ -26,4 +26,5 @@ export interface IJobRepository {
     tags: string[],
     currentJobId: string
   ): Promise<Job[] | []>;
+  getTrendingJobs(jobIds: string[]): Promise<Job[]>;
 }
