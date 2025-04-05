@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "../ui/navbar";
 import ProfileCard from "../ui/ProfileCard";
 import Sidebar from "../ui/sidebar";
+import ExperienceSection from "../ui/ExperienceSections";
 
 function Profile() {
   // const [isScrolled, setIsScrolled] = useState(false);
@@ -32,6 +33,7 @@ export function ProfileContent() {
   return (
     <>
       <ProfileCard />
+      <ExperienceSection />
     </>
   );
 }
