@@ -17,3 +17,18 @@ export const updateProfileService = async (
   );
   return response;
 };
+
+export const addExperienceService = async (experience: {
+  jobTitle: string;
+  company: string;
+  startDate: string;
+  endDate: string;
+  location: string;
+  description: string;
+}) => {
+  const response = await axiosInstance.put(
+    "/candidate/experience",
+    experience
+  );
+  return response;
+};
