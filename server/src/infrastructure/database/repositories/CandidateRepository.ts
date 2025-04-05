@@ -59,4 +59,24 @@ export class CandidateRepository implements ICandidateRepository {
       }
     );
   }
+  async findAndCreateExperience(
+    candidateId: string,
+    jobTitle: string,
+    company: string,
+    startDate: Date,
+    endDate: Date,
+    description: string,
+    location: string
+  ): Promise<UpdateWriteOpResult> {
+    return await CandidateModel.updateOne(
+      { _id: candidateId },
+      {
+        $push: {
+          experience: [
+            { jobTitle, company, startDate, endDate, description, location },
+          ],
+        },
+      }
+    );
+  }
 }

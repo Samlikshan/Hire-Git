@@ -1,11 +1,15 @@
 import { NextFunction, Request, Response } from "express";
 import { CandidateRepository } from "../../../infrastructure/database/repositories/CandidateRepository";
 import { UpdateProfileUseCase } from "../../../domain/usecases/Candidate/UpdateProfileUseCase";
+import { CreateExperienceUseCase } from "../../../domain/usecases/Candidate/CreateExperienceUseCase";
 
 export class ProfileController {
   private candidateRepository = new CandidateRepository();
 
   private updateProfileUseCase = new UpdateProfileUseCase(
+    this.candidateRepository
+  );
+  private createExperienceUseCase = new CreateExperienceUseCase(
     this.candidateRepository
   );
   updateProfile = async (
@@ -61,6 +65,33 @@ export class ProfileController {
         image: profileImage,
         resume: resume ? resume : null,
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  addExperience = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { jobTitle, company, startDate, endDate, description, location } =
+        req.body;
+      const candidateId = req.user?.id;
+      const response = await this.createExperienceUseCase.execute(
+        candidateId!,
+        {
+          jobTitle,
+          company,
+          startDate,
+          endDate,
+          description,
+          location,
+        }
+      );
+
+      res.json({ message: response.message });
     } catch (error) {
       next(error);
     }
