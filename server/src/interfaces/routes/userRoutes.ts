@@ -55,4 +55,5 @@ router.put(
   profileController.updateProfile
 );
 
+router.put("/experience", verifyToken(), profileController.addExperience);
 export default router;

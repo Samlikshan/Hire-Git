@@ -26,4 +26,13 @@ export interface ICandidateRepository {
     gitHub: string,
     linkedIn: string
   ): Promise<UpdateWriteOpResult>;
+  findAndCreateExperience(
+    candidateId: string,
+    jobTitle: string,
+    company: string,
+    startDate: Date,
+    endDate: Date,
+    description: string,
+    location: string
+  ): Promise<UpdateWriteOpResult>;
 }
