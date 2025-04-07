@@ -1,20 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import config from "../../config";
+import { HttpStatus } from "../../domain/enums/http-status.enum";
 
-interface UserPayload extends jwt.JwtPayload {
-  id: string;
-  role: "company" | "candidate" | "admin";
-}
-
-declare global {
-  namespace Express {
-    interface Request {
-      user?: UserPayload;
-    }
-  }
-}
-export const verifyToken = () => {
+export const companyMiddleware = () => {
   return async (
     req: Request,
     res: Response,
@@ -27,11 +16,13 @@ export const verifyToken = () => {
         return;
       }
 
-      const user = jwt.verify(accessToken, config.env.jwtSecret) as JwtPayload;
-      req.user = {
-        id: user.id,
-        role: user.role,
-      };
+      const user = jwt.decode(accessToken) as JwtPayload;
+      if (user.role != "company") {
+        res
+          .status(HttpStatus.FORBIDDEN)
+          .json({ message: "Company only access" });
+        return;
+      }
 
       next(); // Proceed to next middleware
       return;

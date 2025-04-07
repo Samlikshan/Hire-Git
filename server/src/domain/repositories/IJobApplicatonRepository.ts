@@ -7,4 +7,5 @@ export interface IJobApplicationRepository {
   ): Promise<JobApplication>;
   isApplied(jobId: string, candidate: string): Promise<JobApplication | null>;
   getTrendingJobsIds(): Promise<Job[]>;
+  listApplicants(jobId: string): Promise<JobApplication[] | []>;
 }

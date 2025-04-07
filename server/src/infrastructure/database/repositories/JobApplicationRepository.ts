@@ -40,4 +40,7 @@ export class JobApplicationRepository implements IJobApplicationRepository {
       },
     ]);
   }
+  async listApplicants(jobId: string): Promise<JobApplication[] | []> {
+    return JobApplicationModel.find({ job: jobId }).populate("candidate");
+  }
 }
