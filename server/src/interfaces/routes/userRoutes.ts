@@ -5,6 +5,7 @@ import { FileUpload } from "../../utils/multerService";
 import { JobApplicationController } from "../controllers/Candidate/JobApplicationController";
 import { verifyToken } from "../middlewares/verifyTokenMiddleware";
 import { ProfileController } from "../controllers/Candidate/profileController";
+import { NotificationController } from "../controllers/Candidate/NotificationController";
 
 const jobUploadOptions = {
   fileTypes: ["pdf", "jpg", "jpeg", "png"],
@@ -22,9 +23,9 @@ const router = express.Router();
 const jobController = new JobController();
 const jobApplicationController = new JobApplicationController();
 const profileController = new ProfileController();
-
 const jobUpload = new FileUpload(jobUploadOptions);
 const prpfileUpload = new FileUpload(profileuploadOptions);
+const notificationsController = new NotificationController();
 
 router.get("/jobs", jobController.listJobs);
 router.post(
@@ -56,4 +57,9 @@ router.put(
 );
 
 router.put("/experience", verifyToken(), profileController.addExperience);
+router.get(
+  "/notifications/:candidateId",
+  verifyToken(),
+  notificationsController.getNotifications
+);
 export default router;
