@@ -34,3 +34,26 @@ export interface CandidateJob extends Job {
     location: string;
   };
 }
+
+export interface Notification {
+  id: string;
+  type: "message" | "job" | "interview" | "reminder";
+  title: string;
+  company: {
+    name: string;
+    logo: string;
+    _id: string;
+  };
+  candidate: string;
+  job: { title: string };
+  message: string;
+  time: string;
+  read: boolean;
+  action: {
+    label: string;
+    type: "join" | "view" | "reply";
+    url: string;
+  };
+  companyName?: string;
+  roleName?: string;
+}

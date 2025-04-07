@@ -30,6 +30,7 @@ import CandidateJobListPage from "./components/pages/CandidateJobList";
 import JobDetailsCandidate from "./components/ui/JobDetailsCandidate";
 import Home from "./components/pages/CandidateHomePage";
 import Profile, { ProfileContent } from "./components/pages/Profile";
+import { NotificationPage } from "./components/Notificatoins";
 
 function App() {
   return (
@@ -98,6 +99,7 @@ function App() {
             <Route path="/jobs/:jobId" element={<JobDetailsCandidate />} />
             <Route path="/profile" element={<Profile />}>
               <Route index element={<ProfileContent />} />
+              <Route path="notifications" element={<NotificationPage />} />
             </Route>
           </Route>
 

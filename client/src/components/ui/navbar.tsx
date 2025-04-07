@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-
+import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,20 +10,88 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+import { Separator } from "@/components/ui/separator";
 import { logout } from "@/reducers/userSlice";
 import { RootState } from "@/reducers/rootReducer";
+import { useEffect, useState } from "react";
+import { NotificationDropdown } from "./NotificationDropDown";
+import { getNotificationsService } from "@/services/notification";
+import { io } from "socket.io-client";
+import { Notification } from "@/types/job";
 
 export default function Navbar() {
   const { userData, isAuthenticated } = useSelector(
     (state: RootState) => state.user
   );
-
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[] | []>([]);
   const dispatch = useDispatch();
 
   const handleLogout = () => {
     dispatch(logout());
   };
+
+  useEffect(() => {
+    if (!userData?._id) {
+      console.log("No user ID available, not connecting socket");
+      return;
+    }
+
+    console.log("Setting up socket with user ID:", userData?._id);
+
+    // Initialize socket connection
+    const socketInstance = io("http://localhost:3000", {
+      withCredentials: true,
+      transports: ["websocket", "polling"],
+    });
+
+    // Socket event handlers
+    socketInstance.on("connect", () => {
+      console.log(
+        "Socket connected successfully! Socket ID:",
+        socketInstance.id
+      );
+      // setConnected(true);
+
+      // Send user ID after successful connection
+      socketInstance.emit("identify", userData?._id);
+      console.log("Sent identify event with user ID:", userData?._id);
+    });
+
+    socketInstance.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+      // setConnected(false);
+    });
+
+    // Listen specifically for the "notification" event
+    socketInstance.on("notification", (data) => {
+      console.log("📣 Notification received:", data);
+      setNotifications((prev) => [data, ...prev]);
+      // You could also show a toast notification here
+    });
+
+    socketInstance.on("disconnect", () => {
+      console.log("Socket disconnected");
+      // setConnected(false);
+    });
+
+    const fetchNotifications = async () => {
+      if (!userData?._id) return;
+      try {
+        const response = await getNotificationsService(userData?._id);
+
+        if (response.data?.notifications) {
+          setNotifications(response.data.notifications);
+        }
+        console.log(response, "getNotifications response");
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchNotifications();
+  }, [userData]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
@@ -60,6 +128,46 @@ export default function Navbar() {
         {/* Right Section - Slightly right */}
         {isAuthenticated ? (
           <div className="flex items-center space-x-6 -mr-1">
+            {/* Messages */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={() => {
+                setShowMessages(!showMessages);
+                setShowNotifications(false);
+              }}
+            ></Button>
+
+            {/* Messages */}
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative"
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  setShowMessages(false);
+                }}
+              >
+                <Bell className="h-5 w-5 text-gray-700" />
+                {notifications?.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+                    {notifications?.length}
+                  </span>
+                )}
+              </Button>
+
+              <div className="relative">
+                <NotificationDropdown
+                  notifications={notifications}
+                  isOpen={showNotifications}
+                  onClose={() => setShowNotifications(false)}
+                />
+              </div>
+            </div>
+            <Separator orientation="vertical" className="h-8" />
+
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
