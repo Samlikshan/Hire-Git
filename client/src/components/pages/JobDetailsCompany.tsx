@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import JobDescription from "../ui/JobDetailsCompany";
 import { Job } from "@/types/job";
+import CandidatesBoard from "../CandidatesBoard";
 
 function JobDetailsCompany() {
   const navigate = useNavigate();
@@ -160,6 +161,8 @@ function JobDetailsCompany() {
       {/* Main Content */}
       <main className="p-6">
         {activeTab === "description" && <JobDescription job={job} />}
+        {activeTab === "candidates" && <CandidatesBoard />}
+        {/* Other tabs can be implemented as needed */}
       </main>
     </div>
   );

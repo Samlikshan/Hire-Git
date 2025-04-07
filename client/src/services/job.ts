@@ -87,3 +87,15 @@ export const getTrendingJobsService = async () => {
   const response = await axiosInstance.get("/candidate/job/trending");
   return response;
 };
+
+export const getJobApplicantsService = async (jobId: string) => {
+  const response = await axiosInstance.get(`/company/job/applicants/${jobId}`);
+  return response;
+};
+
+export const shortListCandidateService = async (applicationId: string) => {
+  const response = await axiosInstance.patch(
+    `/company/job/shortlist/${applicationId}`
+  );
+  return response;
+};
