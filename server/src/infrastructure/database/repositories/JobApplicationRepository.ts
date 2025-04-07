@@ -1,3 +1,4 @@
+import { UpdateWriteOpResult } from "mongoose";
 import { Job } from "../../../domain/entities/Job";
 import { JobApplication } from "../../../domain/entities/JobApplication";
 import { IJobApplicationRepository } from "../../../domain/repositories/IJobApplicatonRepository";
@@ -42,5 +43,20 @@ export class JobApplicationRepository implements IJobApplicationRepository {
   }
   async listApplicants(jobId: string): Promise<JobApplication[] | []> {
     return JobApplicationModel.find({ job: jobId }).populate("candidate");
+  }
+  async getApplication(applicationId: string): Promise<JobApplication | null> {
+    return JobApplicationModel.findById(applicationId).populate({
+      path: "job",
+      populate: { path: "company" },
+    });
+  }
+  async shortlistApplicant(
+    applicationId: string
+  ): Promise<UpdateWriteOpResult> {
+    console.log(applicationId);
+    return JobApplicationModel.updateOne(
+      { _id: applicationId },
+      { $set: { status: "shortlisted" } }
+    );
   }
 }

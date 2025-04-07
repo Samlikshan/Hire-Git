@@ -57,4 +57,11 @@ router.get(
   companyMiddleware(),
   jobApplicationController.listApplicants
 );
+
+router.patch(
+  "/job/shortlist/:applicationId",
+  verifyToken(),
+  companyMiddleware(),
+  jobApplicationController.shortlistApplicant
+);
 export default router;
