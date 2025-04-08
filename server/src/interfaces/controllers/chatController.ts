@@ -7,6 +7,8 @@ import { MessageRepository } from "../../infrastructure/database/repositories/Me
 import { CreateChatUseCase } from "../../domain/usecases/Chat/CreateChatUseCase";
 import { SendMessageUseCase } from "../../domain/usecases/Chat/SendMessageUseCase";
 import { MessageService } from "../../infrastructure/services/MessageService";
+import { HttpException } from "../../domain/enums/http-exception";
+import { HttpStatus } from "../../domain/enums/http-status.enum";
 export class ChatController {
   private chatRepository: ChatRepository;
   private messageRepository: MessageRepository;
@@ -70,7 +72,7 @@ export class ChatController {
     try {
       // Add proper type checking
       if (!req.user || !req.user.id || !req.user.role) {
-        res.status(401).json({ error: "Unauthorized" });
+        throw new HttpException("Unauthorized", HttpStatus.UNAUTHORIZED);
         return;
       }
 

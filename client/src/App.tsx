@@ -31,6 +31,7 @@ import JobDetailsCandidate from "./components/ui/JobDetailsCandidate";
 import Home from "./components/pages/CandidateHomePage";
 import Profile, { ProfileContent } from "./components/pages/Profile";
 import { NotificationPage } from "./components/Notificatoins";
+import { MessagesPage } from "./components/pages/MessaagesPage";
 
 function App() {
   return (
@@ -91,6 +92,10 @@ function App() {
               <Route path="profile" element={<CompanyProfile />} />
               <Route path="jobs" element={<JobsPage />} />
               <Route path="job/:jobId" element={<JobDetailsCompany />} />
+              <Route
+                path="messages"
+                element={<MessagesPage userType="company" />}
+              />
             </Route>
           </Route>
 
@@ -100,6 +105,10 @@ function App() {
             <Route path="/profile" element={<Profile />}>
               <Route index element={<ProfileContent />} />
               <Route path="notifications" element={<NotificationPage />} />
+              <Route
+                path="messages"
+                element={<MessagesPage userType="candidate" />}
+              />
             </Route>
           </Route>
 

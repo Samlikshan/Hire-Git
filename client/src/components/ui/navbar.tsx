@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { Bell } from "lucide-react";
+import { Bell, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,6 +18,9 @@ import { NotificationDropdown } from "./NotificationDropDown";
 import { getNotificationsService } from "@/services/notification";
 import { io } from "socket.io-client";
 import { Notification } from "@/types/job";
+import { getMessagesService } from "@/services/chat";
+import { Chat, Message } from "@/types/Message";
+import { MessagesDropdown } from "./Messages";
 
 export default function Navbar() {
   const { userData, isAuthenticated } = useSelector(
@@ -25,6 +28,7 @@ export default function Navbar() {
   );
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
+  const [chats, setChats] = useState<Chat[] | []>([]);
   const [notifications, setNotifications] = useState<Notification[] | []>([]);
   const dispatch = useDispatch();
 
@@ -37,7 +41,26 @@ export default function Navbar() {
       console.log("No user ID available, not connecting socket");
       return;
     }
+    const handleNewMessage = (message: Message) => {
+      console.log(message, "new Message from navbar");
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat._id === message.chatId ? { ...chat, lastMessage: message } : chat
+        )
+      );
+    };
 
+    const handleNewChat = (chat: Chat) => {
+      console.log("New chat received:", chat);
+      setChats((prev) => {
+        console.log("Previous chats:", prev);
+        // Prevent duplicates
+        if (!prev.some((c) => c._id === chat._id)) {
+          return [...prev, chat];
+        }
+        return prev;
+      });
+    };
     console.log("Setting up socket with user ID:", userData?._id);
 
     // Initialize socket connection
@@ -70,11 +93,13 @@ export default function Navbar() {
       setNotifications((prev) => [data, ...prev]);
       // You could also show a toast notification here
     });
-
+    socketInstance?.on("new_message", handleNewMessage);
     socketInstance.on("disconnect", () => {
       console.log("Socket disconnected");
       // setConnected(false);
     });
+
+    socketInstance?.on("chat_created", handleNewChat);
 
     const fetchNotifications = async () => {
       if (!userData?._id) return;
@@ -90,6 +115,18 @@ export default function Navbar() {
       }
     };
 
+    const fetchMessages = async () => {
+      if (!userData._id) return;
+      try {
+        const response = await getMessagesService();
+
+        console.log(response, "fetchMessages");
+        setChats(response.data);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+    fetchMessages();
     fetchNotifications();
   }, [userData]);
 
@@ -137,7 +174,14 @@ export default function Navbar() {
                 setShowMessages(!showMessages);
                 setShowNotifications(false);
               }}
-            ></Button>
+            >
+              <Mail className="h-5 w-5 text-gray-700" />
+              {chats?.length > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+                  {chats.length}
+                </span>
+              )}
+            </Button>
 
             {/* Messages */}
             <div className="relative">
@@ -157,7 +201,14 @@ export default function Navbar() {
                   </span>
                 )}
               </Button>
-
+              <div className="relative">
+                <MessagesDropdown
+                  isOpen={showMessages}
+                  onClose={() => setShowMessages(false)}
+                  chats={chats}
+                  userType={userData?.role as "company" | "candidate"}
+                />
+              </div>
               <div className="relative">
                 <NotificationDropdown
                   notifications={notifications}
