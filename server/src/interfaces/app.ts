@@ -11,7 +11,9 @@ import authRouter from "../interfaces/routes/authRoutes";
 import adminRouter from "../interfaces/routes/adminRoutes";
 import userRouter from "../interfaces/routes/userRoutes";
 import companyRouter from "../interfaces/routes/companyRoutes";
+import chatRouter from "../interfaces/routes/chatRoutes";
 import { errorMiddleware } from "./middlewares/errorMiddleware";
+
 const app = express();
 export const server = http.createServer(app);
 socketProvider.initialize(server);
@@ -26,5 +28,6 @@ app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/candidate", userRouter);
 app.use("/api/company", companyRouter);
+app.use("/api/chat", chatRouter);
 
 app.use(errorMiddleware);

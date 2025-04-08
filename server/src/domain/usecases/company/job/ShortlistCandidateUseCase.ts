@@ -5,12 +5,15 @@ import { HttpStatus } from "../../../enums/http-status.enum";
 import { Job } from "../../../entities/Job";
 import { Company } from "../../../entities/Company";
 import { INotificationRepository } from "../../../repositories/INotificationRepository";
-
+import { CreateChatUseCase } from "../../Chat/CreateChatUseCase";
+import { MessageService } from "../../../../infrastructure/services/MessageService";
 export class ShortListCandidateUseCase {
   constructor(
     private jobApplicationRepository: IJobApplicationRepository,
     private notificationRepository: INotificationRepository,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private messageService: MessageService,
+    private createChatUseCase: CreateChatUseCase
   ) {}
 
   async execute(applicationId: string) {
@@ -59,6 +62,11 @@ export class ShortListCandidateUseCase {
         newNotification
       );
     }
+    await this.createChatUseCase.execute(
+      ((application?.job as Job).company as Company).id!,
+      application.candidate.toString(),
+      (application.job as Job)._id!.toString()
+    );
 
     return { message: "Shortlisted candidate successfully" };
   }
