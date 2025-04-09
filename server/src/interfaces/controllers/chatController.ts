@@ -73,7 +73,6 @@ export class ChatController {
       // Add proper type checking
       if (!req.user || !req.user.id || !req.user.role) {
         throw new HttpException("Unauthorized", HttpStatus.UNAUTHORIZED);
-        return;
       }
 
       const { id: userId, role: userType } = req.user;

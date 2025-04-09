@@ -32,6 +32,7 @@ export class LoginCompanyUseCase {
 
     const refreshToken = this.jwtService.generateRefreshToken({
       id: company.id,
+      role: "company",
       email: company.email,
     });
     return { company, message: "Login successfull", accessToken, refreshToken };

@@ -50,4 +50,13 @@ export class JwtService {
       return null;
     }
   }
+
+  verifyRefreshToken(token: string): JwtPayload | null {
+    try {
+      return jwt.verify(token, config.env.jwtSecret) as JwtPayload;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
 }

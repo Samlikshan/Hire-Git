@@ -40,6 +40,7 @@ export class LoginCandidateUseCase {
 
     const refreshToken = this.jwtService.generateRefreshToken({
       id: user.id,
+      role: "candidate",
       email: user.email,
     });
 

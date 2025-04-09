@@ -12,7 +12,7 @@ export const companyMiddleware = () => {
     try {
       const accessToken = req.cookies.accessToken;
       if (!accessToken) {
-        res.status(403).json({ message: "Access token missing" });
+        res.status(401).json({ message: "Access token missing" });
         return;
       }
 

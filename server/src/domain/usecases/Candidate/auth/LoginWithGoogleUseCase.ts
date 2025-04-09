@@ -52,6 +52,7 @@ export class LoginWithGoogleUseCase {
 
     const refreshToken = this.jwtService.generateRefreshToken({
       id: user.id,
+      role: "candidate",
       email: user.email,
     });
     return {

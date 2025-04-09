@@ -356,7 +356,7 @@ export class AuthController {
           HttpStatus.BAD_REQUEST
         );
       }
-      let decoded = this.jwtService.verifyToken(refreshToken);
+      let decoded = this.jwtService.verifyRefreshToken(refreshToken);
       if (!decoded) {
         throw new HttpException(
           "Invalid Refresh token",
@@ -366,6 +366,7 @@ export class AuthController {
       const accessToken = this.jwtService.generateAccessToken({
         id: decoded?.id,
         email: decoded?.email,
+        role: decoded?.role,
       });
 
       res.cookie("accessToken", accessToken, {

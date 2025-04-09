@@ -24,7 +24,11 @@ axiosInstance.interceptors.response.use(
       error.config._retry = true;
 
       try {
-        await axiosInstance.get("/auth/refresh-token");
+        console.log(2);
+        await axios.get(
+          `${import.meta.env.VITE_SERVER_URL}/auth/refresh-token`,
+          { withCredentials: true }
+        );
         return axiosInstance(error.config);
       } catch (refreshError) {
         store.dispatch(logout());
