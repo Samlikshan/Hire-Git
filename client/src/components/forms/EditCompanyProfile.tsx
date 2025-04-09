@@ -5,9 +5,47 @@ import { updateCompanyProfileServices } from "@/services/company";
 import { toast } from "sonner";
 
 interface EditCompanyFormProps {
-  company: any;
+  company: {
+    name?: string;
+    description?: string;
+    industry?: string;
+    companySize?: number;
+    founded?: string;
+    website?: string;
+    headquarters?: string;
+    linkedIn?: string;
+    twitter?: string;
+    about?: string;
+    logo?: string | Blob;
+  };
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: {
+    name?: string;
+    description?: string;
+    industry?: string;
+    companySize?: number;
+    founded?: string;
+    website?: string;
+    headquarters?: string;
+    linkedIn?: string;
+    twitter?: string;
+    about?: string;
+    logo?: string | Blob;
+  }) => void;
+}
+
+interface FormErrors {
+  name?: string;
+  description?: string;
+  industry?: string;
+  companySize?: string;
+  founded?: string;
+  website?: string;
+  headquarters?: string;
+  linkedIn?: string;
+  twitter?: string;
+  about?: string;
+  logo?: string;
 }
 
 export function EditCompanyForm({
@@ -19,22 +57,98 @@ export function EditCompanyForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    // Required fields
+    if (!formData.name?.trim()) newErrors.name = "Company name is required";
+    if (!formData.description?.trim())
+      newErrors.description = "Description is required";
+    if (!formData.industry?.trim()) newErrors.industry = "Industry is required";
+    if (!formData.companySize?.toString().trim())
+      newErrors.companySize = "Company size is required";
+    if (isNaN(formData.companySize!)) {
+      newErrors.companySize = "Company size must be in number";
+    }
+    // Validate year format
+    if (formData.founded) {
+      const yearRegex = /^\d{4}$/;
+      if (!yearRegex.test(formData.founded)) {
+        newErrors.founded = "Please enter a valid year (YYYY)";
+      } else {
+        const currentYear = new Date().getFullYear();
+        const foundedYear = parseInt(formData.founded);
+        if (foundedYear < 1800 || foundedYear > currentYear) {
+          newErrors.founded = `Year must be between 1800 and ${currentYear}`;
+        }
+      }
+    }
+
+    // Validate URLs if provided
+    if (formData.website && !isValidUrl(formData.website)) {
+      newErrors.website = "Please enter a valid URL";
+    }
+    if (formData.linkedIn && !isValidUrl(formData.linkedIn)) {
+      newErrors.linkedIn = "Please enter a valid LinkedIn URL";
+    }
+    if (formData.twitter && !isValidUrl(formData.twitter)) {
+      newErrors.twitter = "Please enter a valid Twitter URL";
+    }
+
+    // Validate about length
+    if (formData.about && formData.about.length > 2000) {
+      newErrors.about = "About section must be less than 2000 characters";
+    }
+
+    // Validate logo if it's a new file
+    if (logoFile) {
+      if (logoFile.size > 2 * 1024 * 1024) {
+        // 2MB
+        newErrors.logo = "Logo must be less than 2MB";
+      }
+      if (!logoFile.type.match("image.*")) {
+        newErrors.logo = "Logo must be an image file";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const isValidUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear error when user types
+    if (errors[name as keyof FormErrors]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
     setIsSubmitting(true);
-    setError("");
 
     try {
       const formDataToSubmit = new FormData();
@@ -47,12 +161,10 @@ export function EditCompanyForm({
 
       if (logoFile) {
         formDataToSubmit.append("logo", logoFile);
-        formDataToSubmit.append("previousLogo", formData.logo);
       } else if (formData.logo) {
         formDataToSubmit.append("logo", formData.logo);
       }
 
-      console.log(formData);
       const response = await updateCompanyProfileServices(formDataToSubmit);
 
       if (response.status === 200 || response.status === 201) {
@@ -62,7 +174,7 @@ export function EditCompanyForm({
       }
     } catch (err) {
       console.error("Error updating company:", err);
-      setError("Failed to update company profile. Please try again.");
+      toast.error("Failed to update company profile. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -75,7 +187,18 @@ export function EditCompanyForm({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file before setting it
+      if (file.size > 2 * 1024 * 1024) {
+        setErrors((prev) => ({ ...prev, logo: "Logo must be less than 2MB" }));
+        return;
+      }
+      if (!file.type.match("image.*")) {
+        setErrors((prev) => ({ ...prev, logo: "Logo must be an image file" }));
+        return;
+      }
+
       setLogoFile(file);
+      setErrors((prev) => ({ ...prev, logo: undefined }));
 
       const previewURL = URL.createObjectURL(file);
       setLogoPreview(previewURL);
@@ -146,60 +269,87 @@ export function EditCompanyForm({
               />
             </div>
           </div>
+          {errors.logo && (
+            <p className="text-red-500 text-sm text-center">{errors.logo}</p>
+          )}
 
-          {/* Form fields remain the same */}
+          {/* Form fields */}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Company Name
+                Company Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border ${
+                  errors.name ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
+                Description <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border ${
+                  errors.description ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
+              {errors.description && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.description}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Industry
+                  Industry <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="industry"
                   value={formData.industry}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border ${
+                    errors.industry ? "border-red-500" : "border-gray-300"
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
+                {errors.industry && (
+                  <p className="text-red-500 text-sm mt-1">{errors.industry}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Company Size
+                  Company Size <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="companySize"
                   value={formData.companySize}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border ${
+                    errors.companySize ? "border-red-500" : "border-gray-300"
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
+                {errors.companySize && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.companySize}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -213,8 +363,14 @@ export function EditCompanyForm({
                   name="founded"
                   value={formData.founded}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border ${
+                    errors.founded ? "border-red-500" : "border-gray-300"
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  placeholder="YYYY"
                 />
+                {errors.founded && (
+                  <p className="text-red-500 text-sm mt-1">{errors.founded}</p>
+                )}
               </div>
 
               <div>
@@ -226,8 +382,14 @@ export function EditCompanyForm({
                   name="website"
                   value={formData.website}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border ${
+                    errors.website ? "border-red-500" : "border-gray-300"
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  placeholder="https://example.com"
                 />
+                {errors.website && (
+                  <p className="text-red-500 text-sm mt-1">{errors.website}</p>
+                )}
               </div>
             </div>
 
@@ -254,8 +416,14 @@ export function EditCompanyForm({
                   name="linkedIn"
                   value={formData.linkedIn}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border ${
+                    errors.linkedIn ? "border-red-500" : "border-gray-300"
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  placeholder="https://linkedin.com/company/example"
                 />
+                {errors.linkedIn && (
+                  <p className="text-red-500 text-sm mt-1">{errors.linkedIn}</p>
+                )}
               </div>
 
               <div>
@@ -267,8 +435,14 @@ export function EditCompanyForm({
                   name="twitter"
                   value={formData.twitter}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border ${
+                    errors.twitter ? "border-red-500" : "border-gray-300"
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  placeholder="https://twitter.com/example"
                 />
+                {errors.twitter && (
+                  <p className="text-red-500 text-sm mt-1">{errors.twitter}</p>
+                )}
               </div>
             </div>
 
@@ -281,12 +455,18 @@ export function EditCompanyForm({
                 value={formData.about}
                 onChange={handleInputChange}
                 rows={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border ${
+                  errors.about ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
+              {errors.about && (
+                <p className="text-red-500 text-sm mt-1">{errors.about}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.about?.length || 0}/2000 characters
+              </p>
             </div>
           </div>
-
-          {error && <div className="text-red-500 text-sm">{error}</div>}
 
           <div className="flex justify-end gap-4">
             <button
