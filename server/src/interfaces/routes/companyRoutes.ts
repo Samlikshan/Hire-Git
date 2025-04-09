@@ -38,12 +38,7 @@ router.post(
   companyMiddleware(),
   jobController.createJob
 );
-router.get(
-  "/job/:jobId",
-  verifyToken(),
-  companyMiddleware(),
-  jobController.getJob
-);
+router.get("/job/:jobId", verifyToken(), jobController.getJob);
 router.put("/job", verifyToken(), companyMiddleware(), jobController.updateJob);
 router.delete(
   "/job/:jobId",
