@@ -99,3 +99,10 @@ export const shortListCandidateService = async (applicationId: string) => {
   );
   return response;
 };
+
+export const getAppliedJobsService = async (candiddateId: string) => {
+  const response = await axiosInstance.get(
+    `/candidate/job/applied/${candiddateId}`
+  );
+  return response;
+};

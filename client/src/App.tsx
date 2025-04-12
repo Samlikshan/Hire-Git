@@ -32,6 +32,8 @@ import Home from "./components/pages/CandidateHomePage";
 import Profile, { ProfileContent } from "./components/pages/Profile";
 import { NotificationPage } from "./components/Notificatoins";
 import { MessagesPage } from "./components/pages/MessaagesPage";
+import { JobApplications } from "./components/pages/JobApplications";
+import NotFound from "./components/pages/NotFound";
 
 function App() {
   return (
@@ -105,6 +107,7 @@ function App() {
             <Route path="/profile" element={<Profile />}>
               <Route index element={<ProfileContent />} />
               <Route path="notifications" element={<NotificationPage />} />
+              <Route path="jobs" element={<JobApplications />} />
               <Route
                 path="messages"
                 element={<MessagesPage userType="candidate" />}
@@ -112,7 +115,7 @@ function App() {
             </Route>
           </Route>
 
-          <Route path="*" element={<h1>404</h1>} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </GoogleOAuthProvider>
     </>
