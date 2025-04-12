@@ -78,12 +78,17 @@ export default function CompanyTable() {
         actionType,
         declineReason
       );
-      console.log(response);
+
       setOpenDialog(false);
       if (response.status == 200) {
-        const data = companyData.filter(
-          (company) => company._id != selectedCompany._id
-        );
+        const data = companyData.filter((company) => {
+          if (company._id == selectedCompany._id) {
+            return (selectedCompany.accountStatus.status =
+              actionType.charAt(0).toUpperCase() + actionType.slice(1) + "ed");
+          }
+          return company;
+        });
+        console.log(data, "data");
         setCompanyData(data);
       }
       setDeclineReason("");
@@ -166,7 +171,7 @@ export default function CompanyTable() {
                         Accept
                       </Button>
                     )}
-                    {company.accountStatus.status != "Rejected" && (
+                    {company.accountStatus.status == "Pending" && (
                       <Button
                         variant="destructive"
                         size="sm"

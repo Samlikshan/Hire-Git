@@ -36,6 +36,7 @@ interface Applicant {
     skills: string[];
     profileImage: string;
     socialLinks: { gitHub: string; linkedIn: string };
+    bio?: string;
   };
   firstName: string;
   lastName: string;
@@ -314,7 +315,9 @@ const CandidatesBoard: React.FC = () => {
       applicant.candidate.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      applicant.email.toLowerCase().includes(searchTerm.toLowerCase());
+      applicant.candidate.email
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
 
     const matchesSkills =
       filterSkills.length === 0 ||
@@ -446,13 +449,13 @@ const CandidatesBoard: React.FC = () => {
                         <Briefcase size={18} className="mr-3" />
                         <span>{selectedApplicant.experience} Experience</span>
                       </div>
-                      <div className="flex items-center text-gray-600">
+                      {/* <div className="flex items-center text-gray-600">
                         <MapPin size={18} className="mr-3" />
                         <span>San Francisco, CA</span>
-                      </div>
+                      </div> */}
                       <div className="flex items-center text-gray-600">
                         <Phone size={18} className="mr-3" />
-                        <span>+1 (555) 123-4567</span>
+                        <span>{selectedApplicant.phone}</span>
                       </div>
                     </div>
 
@@ -499,11 +502,7 @@ const CandidatesBoard: React.FC = () => {
                         Professional Summary
                       </h5>
                       <p className="text-gray-600 leading-relaxed">
-                        Experienced software developer with a strong background
-                        in full-stack development. Passionate about creating
-                        efficient, scalable solutions and mentoring junior
-                        developers. Proven track record of delivering
-                        high-impact projects on time and within budget.
+                        {selectedApplicant.candidate.bio}
                       </p>
                     </div>
 
@@ -543,7 +542,7 @@ const CandidatesBoard: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="bg-white rounded-lg p-6 border border-gray-100">
+                      {/* <div className="bg-white rounded-lg p-6 border border-gray-100">
                         <div className="flex items-center mb-4">
                           <Book className="w-5 h-5 text-blue-600 mr-2" />
                           <h5 className="text-lg font-semibold text-gray-900">
@@ -560,7 +559,7 @@ const CandidatesBoard: React.FC = () => {
                             </p>
                           </div>
                         </div>
-                      </div>
+                      </div> */}
                     </div>
 
                     {/* <div className="bg-white rounded-lg p-6 border border-gray-100">

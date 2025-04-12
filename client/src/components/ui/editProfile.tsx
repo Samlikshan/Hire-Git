@@ -78,15 +78,18 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     // Validation checks
     if (!formData.name?.trim()) {
       toast.error("Name is required");
+      setIsSubmitting(false);
       return;
     }
     if (!formData.profession?.trim()) {
       toast.error("Profession is required");
+      setIsSubmitting(false);
       return;
     }
     const skills = formData.skills.split(",").map((skill) => skill.trim());
     if (skills.length === 0) {
       toast.error("At least one skill is required");
+      setIsSubmitting(false);
       return;
     }
 
@@ -126,7 +129,6 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       }
 
       const response = await updateProfileService(formDataToSend);
-      console.log(response);
 
       if (response.status == 200) {
         dispatch(

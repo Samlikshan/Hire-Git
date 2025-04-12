@@ -12,6 +12,7 @@ import {
   FileText,
   DollarSign,
   MapPin,
+  AlertCircle,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/reducers/rootReducer";
@@ -19,10 +20,23 @@ import { RootState } from "@/reducers/rootReducer";
 interface JobApplicationFormProps {
   jobTitle: string;
   company: string;
-  companyLogo: string; // URL to the company logo
+  companyLogo: string;
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: FormData) => void;
+}
+
+interface FormErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  location?: string;
+  education?: string;
+  currentTitle?: string;
+  experience?: string;
+  expectedSalary?: string;
+  resume?: string;
 }
 
 export function JobApplicationForm({
@@ -50,8 +64,68 @@ export function JobApplicationForm({
   const [selectedCoverLetter, setSelectedCoverLetter] = useState<File | null>(
     null
   );
-
+  const [errors, setErrors] = useState<FormErrors>({});
   const [step, setStep] = useState(1);
+
+  const validateStep = (stepNumber: number): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (stepNumber === 1) {
+      if (!formData.firstName.trim())
+        newErrors.firstName = "First name is required";
+      if (!formData.lastName.trim())
+        newErrors.lastName = "Last name is required";
+
+      if (!formData.email.trim()) {
+        newErrors.email = "Email is required";
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        newErrors.email = "Please enter a valid email";
+      }
+
+      if (!formData.phone.trim()) {
+        newErrors.phone = "Phone number is required";
+      } else if (
+        !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(
+          formData.phone
+        )
+      ) {
+        newErrors.phone = "Please enter a valid phone number";
+      }
+
+      if (!formData.location.trim())
+        newErrors.location = "Location is required";
+    }
+
+    if (stepNumber === 2) {
+      if (!formData.education)
+        newErrors.education = "Education level is required";
+      if (!formData.currentTitle.trim())
+        newErrors.currentTitle = "Current title is required";
+
+      if (!formData.experience) {
+        newErrors.experience = "Experience is required";
+      } else if (isNaN(Number(formData.experience))) {
+        newErrors.experience = "Please enter a valid number";
+      } else if (Number(formData.experience) < 0) {
+        newErrors.experience = "Experience cannot be negative";
+      }
+
+      if (!formData.expectedSalary) {
+        newErrors.expectedSalary = "Expected salary is required";
+      } else if (isNaN(Number(formData.expectedSalary))) {
+        newErrors.expectedSalary = "Please enter a valid number";
+      } else if (Number(formData.expectedSalary) < 0) {
+        newErrors.expectedSalary = "Salary cannot be negative";
+      }
+    }
+
+    if (stepNumber === 3 && !selectedResume) {
+      newErrors.resume = "Resume is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -60,14 +134,26 @@ export function JobApplicationForm({
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear error when user types
+    if (errors[name as keyof FormErrors]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (step < 3) {
-      nextStep();
+      if (validateStep(step)) {
+        nextStep();
+      }
       return;
     }
+
+    // Final validation before submit
+    if (!validateStep(3)) return;
+
     setIsSubmitting(true);
 
     const form = e.target as HTMLFormElement;
@@ -76,12 +162,7 @@ export function JobApplicationForm({
     for (const value of Object.entries(formData)) {
       newformData.append(value[0], value[1]);
     }
-    // if (selectedResume) {
-    //   newformData.append("resume", selectedResume);
-    // }
-    // if (selectedCoverLetter) {
-    //   newformData.append("coverLetter", selectedCoverLetter);
-    // }
+
     if (user?._id) {
       newformData.append("candidate", user?._id);
     }
@@ -90,7 +171,6 @@ export function JobApplicationForm({
       await onSubmit(newformData);
     } catch (error) {
       console.error("Error submitting application:", error);
-      return;
     } finally {
       setIsSubmitting(false);
     }
@@ -102,17 +182,48 @@ export function JobApplicationForm({
   ) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type and size
+      const validTypes = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ];
+      const maxSize = 5 * 1024 * 1024; // 5MB
+
+      if (!validTypes.includes(file.type)) {
+        setErrors((prev) => ({
+          ...prev,
+          resume: "Only PDF, DOC, and DOCX files are allowed",
+        }));
+        return;
+      }
+
+      if (file.size > maxSize) {
+        setErrors((prev) => ({
+          ...prev,
+          resume: "File size must be less than 5MB",
+        }));
+        return;
+      }
+
       if (type === "resume") {
         setSelectedResume(file);
       } else {
         setSelectedCoverLetter(file);
       }
+      setErrors((prev) => ({ ...prev, resume: undefined }));
     }
   };
 
-  const nextStep = () => setStep(step + 1);
+  const nextStep = () => {
+    if (validateStep(step)) {
+      setStep(step + 1);
+    }
+  };
+
   const prevStep = () => setStep(step - 1);
 
+  // Render the form with validation errors
   return (
     <AnimatePresence>
       {isOpen && (
@@ -126,7 +237,8 @@ export function JobApplicationForm({
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden" // Changed max-w-2xl to max-w-md
+            style={{ maxHeight: "90vh" }} // Added fixed max height
           >
             {/* Header */}
             <div className="relative p-8 border-b border-gray-100 bg-gradient-to-r from-blue-700 to-indigo-700">
@@ -196,8 +308,10 @@ export function JobApplicationForm({
               </div>
             </div>
 
-            {/* Form */}
-            <div className="p-8">
+            <div
+              className="p-6 pb-16 overflow-y-auto"
+              style={{ maxHeight: "calc(90vh - 200px)" }}
+            >
               <form onSubmit={handleSubmit}>
                 <AnimatePresence mode="wait">
                   {step === 1 && (
@@ -221,11 +335,21 @@ export function JobApplicationForm({
                           <input
                             type="text"
                             name="firstName"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            className={`w-full px-4 py-3 border ${
+                              errors.firstName
+                                ? "border-red-500"
+                                : "border-gray-300"
+                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all`}
                             placeholder="John"
                             value={formData.firstName}
                             onChange={handleInputChange}
                           />
+                          {errors.firstName && (
+                            <p className="mt-1 text-sm text-red-600 flex items-center">
+                              <AlertCircle className="w-4 h-4 mr-1" />
+                              {errors.firstName}
+                            </p>
+                          )}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -239,11 +363,21 @@ export function JobApplicationForm({
                           <input
                             type="text"
                             name="lastName"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            className={`w-full px-4 py-3 border ${
+                              errors.lastName
+                                ? "border-red-500"
+                                : "border-gray-300"
+                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all`}
                             placeholder="Doe"
                             value={formData.lastName}
                             onChange={handleInputChange}
                           />
+                          {errors.lastName && (
+                            <p className="mt-1 text-sm text-red-600 flex items-center">
+                              <AlertCircle className="w-4 h-4 mr-1" />
+                              {errors.lastName}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div>
@@ -258,11 +392,19 @@ export function JobApplicationForm({
                         <input
                           type="email"
                           name="email"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                          className={`w-full px-4 py-3 border ${
+                            errors.email ? "border-red-500" : "border-gray-300"
+                          } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all`}
                           placeholder="john.doe@example.com"
                           value={formData.email}
                           onChange={handleInputChange}
                         />
+                        {errors.email && (
+                          <p className="mt-1 text-sm text-red-600 flex items-center">
+                            <AlertCircle className="w-4 h-4 mr-1" />
+                            {errors.email}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -276,11 +418,19 @@ export function JobApplicationForm({
                         <input
                           type="tel"
                           name="phone"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                          className={`w-full px-4 py-3 border ${
+                            errors.phone ? "border-red-500" : "border-gray-300"
+                          } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all`}
                           placeholder="(555) 555-5555"
                           value={formData.phone}
                           onChange={handleInputChange}
                         />
+                        {errors.phone && (
+                          <p className="mt-1 text-sm text-red-600 flex items-center">
+                            <AlertCircle className="w-4 h-4 mr-1" />
+                            {errors.phone}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -294,11 +444,21 @@ export function JobApplicationForm({
                         <input
                           type="text"
                           name="location"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                          className={`w-full px-4 py-3 border ${
+                            errors.location
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all`}
                           placeholder="City, State"
                           value={formData.location}
                           onChange={handleInputChange}
                         />
+                        {errors.location && (
+                          <p className="mt-1 text-sm text-red-600 flex items-center">
+                            <AlertCircle className="w-4 h-4 mr-1" />
+                            {errors.location}
+                          </p>
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -322,11 +482,18 @@ export function JobApplicationForm({
                         </label>
                         <select
                           name="education"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none bg-no-repeat bg-right bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNUwwIDEuNUwxLjUgMEw2IDQuNUwxMC41IDBMMTIgMS41TDYgNy41WiIgZmlsbD0iIzY0NzQ4QiIvPgo8L3N2Zz4K')]"
+                          className={`w-full px-4 py-3 border ${
+                            errors.education
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none bg-no-repeat bg-right`}
                           style={{
+                            backgroundImage:
+                              "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNUwwIDEuNUwxLjUgMEw2IDQuNUwxMC41IDBMMTIgMS41TDYgNy41WiIgZmlsbD0iIzY0NzQ4QiIvPgo8L3N2Zz4K')",
                             backgroundPosition: "calc(100% - 1rem) center",
                             paddingRight: "2.5rem",
                           }}
+                          value={formData.education}
                           onChange={handleInputChange}
                         >
                           <option value="">Select Education Level</option>
@@ -342,6 +509,12 @@ export function JobApplicationForm({
                           </option>
                           <option value="Doctorate">Doctorate</option>
                         </select>
+                        {errors.education && (
+                          <p className="mt-1 text-sm text-red-600 flex items-center">
+                            <AlertCircle className="w-4 h-4 mr-1" />
+                            {errors.education}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -355,11 +528,21 @@ export function JobApplicationForm({
                         <input
                           type="text"
                           name="currentTitle"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                          className={`w-full px-4 py-3 border ${
+                            errors.currentTitle
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all`}
                           placeholder="Software Engineer"
                           value={formData.currentTitle}
                           onChange={handleInputChange}
                         />
+                        {errors.currentTitle && (
+                          <p className="mt-1 text-sm text-red-600 flex items-center">
+                            <AlertCircle className="w-4 h-4 mr-1" />
+                            {errors.currentTitle}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -375,14 +558,21 @@ export function JobApplicationForm({
                             type="number"
                             name="experience"
                             min="0"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            className={`w-full px-4 py-3 border ${
+                              errors.experience
+                                ? "border-red-500"
+                                : "border-gray-300"
+                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all`}
                             placeholder="5"
                             value={formData.experience}
                             onChange={handleInputChange}
                           />
-                          {/* <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                            years
-                          </span> */}
+                          {errors.experience && (
+                            <p className="mt-1 text-sm text-red-600 flex items-center">
+                              <AlertCircle className="w-4 h-4 mr-1" />
+                              {errors.experience}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div>
@@ -395,20 +585,27 @@ export function JobApplicationForm({
                           </div>
                         </label>
                         <div className="relative">
-                          <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500">
+                          {/* <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500">
                             $
-                          </span>
+                          </span> */}
                           <input
-                            type="number"
+                            type="text"
                             name="expectedSalary"
-                            className="w-full pl-8 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                            placeholder="80000"
+                            className={`w-full pl-4  py-3 border ${
+                              errors.expectedSalary
+                                ? "border-red-500"
+                                : "border-gray-300"
+                            } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all`}
+                            placeholder="$ 80000"
                             value={formData.expectedSalary}
                             onChange={handleInputChange}
                           />
-                          {/* <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                            per year
-                          </span> */}
+                          {errors.expectedSalary && (
+                            <p className="mt-1 text-sm text-red-600 flex items-center">
+                              <AlertCircle className="w-4 h-4 mr-1" />
+                              {errors.expectedSalary}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </motion.div>
@@ -427,6 +624,8 @@ export function JobApplicationForm({
                           className={`border-2 border-dashed rounded-xl p-6 transition-all ${
                             selectedResume
                               ? "border-blue-400 bg-blue-50"
+                              : errors.resume
+                              ? "border-red-400 bg-red-50"
                               : "border-gray-200 hover:border-blue-400 hover:bg-blue-50"
                           } group`}
                         >
@@ -446,6 +645,8 @@ export function JobApplicationForm({
                               className={`p-4 rounded-xl mb-3 transition-all ${
                                 selectedResume
                                   ? "bg-blue-200"
+                                  : errors.resume
+                                  ? "bg-red-200"
                                   : "bg-blue-100 group-hover:bg-blue-200"
                               }`}
                             >
@@ -468,9 +669,16 @@ export function JobApplicationForm({
                                 File selected
                               </span>
                             )}
+                            {errors.resume && (
+                              <span className="mt-2 text-xs text-red-600 bg-red-100 px-3 py-1 rounded-full font-medium flex items-center">
+                                <AlertCircle className="w-4 h-4 mr-1" />
+                                {errors.resume}
+                              </span>
+                            )}
                           </label>
                         </div>
 
+                        {/* Cover Letter Upload (same as before but without validation) */}
                         <div
                           className={`border-2 border-dashed rounded-xl p-6 transition-all ${
                             selectedCoverLetter
@@ -524,54 +732,56 @@ export function JobApplicationForm({
                 </AnimatePresence>
 
                 {/* Form Actions */}
-                <div className="mt-8 flex justify-between gap-3">
-                  <button
-                    type="button"
-                    onClick={prevStep}
-                    className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                      step === 1
-                        ? "invisible"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                    }`}
-                  >
-                    Back
-                  </button>
-                  <div className="flex gap-3">
+                <div className="bg-white border-t border-gray-100 pt-4">
+                  <div className="flex justify-between gap-3">
                     <button
                       type="button"
-                      onClick={onClose}
-                      className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
-                      disabled={isSubmitting}
+                      onClick={prevStep}
+                      className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                        step === 1
+                          ? "invisible"
+                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                      }`}
                     >
-                      Cancel
+                      Back
                     </button>
-                    {step < 3 ? (
+                    <div className="flex gap-3">
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          nextStep();
-                        }}
-                        className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-md shadow-blue-500/20 hover:shadow-blue-500/30"
-                      >
-                        Continue
-                      </button>
-                    ) : (
-                      <button
-                        type="submit"
+                        onClick={onClose}
+                        className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
                         disabled={isSubmitting}
-                        className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
                       >
-                        {isSubmitting ? (
-                          <div className="flex items-center gap-2">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Submitting...
-                          </div>
-                        ) : (
-                          "Submit Application"
-                        )}
+                        Cancel
                       </button>
-                    )}
+                      {step < 3 ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            nextStep();
+                          }}
+                          className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-md shadow-blue-500/20 hover:shadow-blue-500/30"
+                        >
+                          Continue
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600"
+                        >
+                          {isSubmitting ? (
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Submitting...
+                            </div>
+                          ) : (
+                            "Submit Application"
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </form>

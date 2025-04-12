@@ -10,7 +10,7 @@ interface UserData {
   bio: string;
   googleId: string;
   profileImage: string;
-  socialLinks: { linkedIn: string; gitHub: string; twitter: string };
+  socialLinks: { linkedIn: string; gitHub: string };
   skills: string[];
   resume: string;
   isVerified: boolean;
