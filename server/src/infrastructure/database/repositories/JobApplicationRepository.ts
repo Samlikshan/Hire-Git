@@ -59,4 +59,12 @@ export class JobApplicationRepository implements IJobApplicationRepository {
       { $set: { status: "shortlisted" } }
     );
   }
+  getAppliedJobs(candidateId: string): Promise<JobApplication[] | []> {
+    return JobApplicationModel.find({ candidate: candidateId }).populate({
+      path: "job",
+      populate: {
+        path: "company",
+      },
+    });
+  }
 }

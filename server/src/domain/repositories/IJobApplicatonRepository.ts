@@ -11,4 +11,5 @@ export interface IJobApplicationRepository {
   listApplicants(jobId: string): Promise<JobApplication[] | []>;
   getApplication(applicationId: string): Promise<JobApplication | null>;
   shortlistApplicant(applicationId: string): Promise<UpdateWriteOpResult>;
+  getAppliedJobs(candidateId: string): Promise<JobApplication[] | []>;
 }

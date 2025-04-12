@@ -62,4 +62,9 @@ router.get(
   verifyToken(),
   notificationsController.getNotifications
 );
+router.get(
+  "/job/applied/:candidateId",
+  verifyToken(),
+  jobApplicationController.getAppliedjobs
+);
 export default router;

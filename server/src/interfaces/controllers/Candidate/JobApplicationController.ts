@@ -2,11 +2,15 @@ import { NextFunction, Request, Response } from "express";
 import { ApplyJobUseCase } from "../../../domain/usecases/Candidate/Job/ApplyJobUseCase";
 import { JobApplicationRepository } from "../../../infrastructure/database/repositories/JobApplicationRepository";
 import { IsAppliedUseCase } from "../../../domain/usecases/Candidate/Job/IsAppliedUseCase";
+import { GetAppliedJobsUseCase } from "../../../domain/usecases/Candidate/Job/GetAppliedJobsUseCase";
 
 export class JobApplicationController {
   private jobApplicatonRepository = new JobApplicationRepository();
   private applyJobUseCase = new ApplyJobUseCase(this.jobApplicatonRepository);
   private isAppliedUseCase = new IsAppliedUseCase(this.jobApplicatonRepository);
+  private getAppliedJobsUseCase = new GetAppliedJobsUseCase(
+    this.jobApplicatonRepository
+  );
   applyJob = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
@@ -64,6 +68,19 @@ export class JobApplicationController {
       const { jobId, candidateId } = req.params;
       const response = await this.isAppliedUseCase.execute(jobId, candidateId);
       res.json({ message: response.message, isApplied: response.isApplied });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAppliedjobs = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { candidateId } = req.params;
+      const response = await this.getAppliedJobsUseCase.execute(candidateId);
+      res.json({
+        message: response.message,
+        appliedJobs: response.appliedJobs,
+      });
     } catch (error) {
       next(error);
     }
