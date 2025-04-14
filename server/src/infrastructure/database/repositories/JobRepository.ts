@@ -2,6 +2,8 @@ import { UpdateWriteOpResult } from "mongoose";
 import { Job } from "../../../domain/entities/Job";
 import { IJobRepository } from "../../../domain/repositories/IJobRepository";
 import { JobModel } from "../models/jobModel";
+import { CandidateModel } from "../models/candidateModel";
+import { Candidate } from "../../../domain/entities/Candidate";
 
 export class JobRepository implements IJobRepository {
   async createJob(jobData: Job): Promise<Job> {
@@ -13,7 +15,7 @@ export class JobRepository implements IJobRepository {
     });
   }
   async findById(id: string): Promise<Job | null> {
-    return JobModel.findOne({ _id: id }).populate("company");
+    return JobModel.findOne({ _id: id }).populate("company").lean();
   }
   async updateJob(updatedDetails: Job): Promise<UpdateWriteOpResult> {
     return JobModel.updateOne(
@@ -78,6 +80,7 @@ export class JobRepository implements IJobRepository {
         .populate("company")
         .skip(skip)
         .limit(params.limit)
+        .lean()
         .exec(),
       JobModel.countDocuments(query),
     ]);
@@ -101,5 +104,18 @@ export class JobRepository implements IJobRepository {
       "company",
       "_id name logo"
     );
+  }
+  async isSavedJob(userId: string, jobId: string): Promise<Candidate[] | null> {
+    return CandidateModel.findOne({ _id: userId, savedJobs: { $in: [jobId] } })
+  }
+  async saveJob(userId: string, jobId: string): Promise<UpdateWriteOpResult> {
+    return CandidateModel.updateOne({ _id: userId }, { $addToSet: { savedJobs: jobId } })
+
+  }
+  async removeJob(userId: string, jobId: string): Promise<UpdateWriteOpResult> {
+    return CandidateModel.updateOne({ _id: userId }, { $pull: { savedJobs: jobId } })
+  }
+  async getSavedJobs(userId: string): Promise<Candidate | null> {
+    return CandidateModel.findOne({ _id: userId }).populate({ path: 'savedJobs', populate: 'company' }).select("savedJobs").lean()
   }
 }

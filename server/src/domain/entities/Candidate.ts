@@ -1,3 +1,6 @@
+import mongoose from "mongoose";
+import { Job } from "./Job";
+
 export class Candidate {
   constructor(
     public email: string,
@@ -5,6 +8,7 @@ export class Candidate {
     public isVerified: Boolean,
     public profileCompleted: boolean,
     public isBlocked: boolean,
+    public savedJobs: mongoose.Types.ObjectId[] | Job[],
     public id?: string,
     public profession?: string | null,
     public bio?: string | null,
@@ -20,17 +24,17 @@ export class Candidate {
     public resume?: string | null,
     public experience?:
       | {
-          jobTitle?: String | null;
-          company?: String | null;
-          location?: String | null;
-          startDate?: Date | null;
-          endDate?: Date | null;
-          description?: String | null;
-        }[]
+        jobTitle?: String | null;
+        company?: String | null;
+        location?: String | null;
+        startDate?: Date | null;
+        endDate?: Date | null;
+        description?: String | null;
+      }[]
       | []
-  ) {}
+  ) { }
 }
 
 export class Project {
-  constructor(public tile: string) {}
+  constructor(public tile: string) { }
 }

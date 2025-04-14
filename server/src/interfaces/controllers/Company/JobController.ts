@@ -8,6 +8,7 @@ import { GetJobUseCase } from "../../../domain/usecases/company/job/GetJobUseCas
 import { EditJobUseCase } from "../../../domain/usecases/company/job/EditJobUseCase";
 import { DeleteJobuseCase } from "../../../domain/usecases/company/job/DeleteJobUseCase";
 
+
 export class JobController {
   private jobRepository = new JobRepository();
 
@@ -16,6 +17,7 @@ export class JobController {
   private getJobUseCase = new GetJobUseCase(this.jobRepository);
   private editJobUseCase = new EditJobUseCase(this.jobRepository);
   private deleteJobUseCase = new DeleteJobuseCase(this.jobRepository);
+
   createJob = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
@@ -71,7 +73,9 @@ export class JobController {
   getJob = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const jobId = req.params.jobId;
-      const response = await this.getJobUseCase.execute(jobId);
+      const userId = req.user?.id
+      const role = req.user?.role
+      const response = await this.getJobUseCase.execute(jobId, userId!, role!);
 
       res.json({ message: response.message, job: response.job });
     } catch (error) {
@@ -132,4 +136,6 @@ export class JobController {
       next(error);
     }
   };
+
 }
+

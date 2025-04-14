@@ -1,5 +1,6 @@
 import { UpdateWriteOpResult } from "mongoose";
 import { Job } from "../entities/Job";
+import { Candidate } from "../entities/Candidate";
 
 export interface IJobRepository {
   createJob(jobData: Job): Promise<Job>;
@@ -27,4 +28,8 @@ export interface IJobRepository {
     currentJobId: string
   ): Promise<Job[] | []>;
   getTrendingJobs(jobIds: string[]): Promise<Job[]>;
+  isSavedJob(userId: string, jobId: string): Promise<Candidate[] | null>;
+  saveJob(userId: string, jobId: string): Promise<UpdateWriteOpResult>;
+  removeJob(userId: string, jobId: string): Promise<UpdateWriteOpResult>;
+  getSavedJobs(userId: string): Promise<Candidate | null>;
 }

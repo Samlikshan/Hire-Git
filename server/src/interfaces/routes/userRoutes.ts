@@ -27,7 +27,7 @@ const jobUpload = new FileUpload(jobUploadOptions);
 const prpfileUpload = new FileUpload(profileuploadOptions);
 const notificationsController = new NotificationController();
 
-router.get("/jobs", jobController.listJobs);
+router.get("/jobs", verifyToken(), jobController.listJobs);
 router.post(
   "/job/apply/:jobId",
   verifyToken(),
@@ -67,4 +67,6 @@ router.get(
   verifyToken(),
   jobApplicationController.getAppliedjobs
 );
+router.post("/save-job/:jobId", verifyToken(), jobController.saveJob)
+router.get("/saved-jobs", verifyToken(), jobController.getSavedJobs)
 export default router;

@@ -1,4 +1,4 @@
-import { NextFunction, Request, response, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { ListJobsUseCase } from "../../../domain/usecases/Candidate/Job/ListJobUseCase";
 import { RelatedJobsUseCase } from "../../../domain/usecases/Candidate/Job/RelatedJobsUseCase";
 
@@ -6,6 +6,8 @@ import { JobRepository } from "../../../infrastructure/database/repositories/Job
 import { HttpStatus } from "../../../domain/enums/http-status.enum";
 import { TrendingJobsUseCase } from "../../../domain/usecases/Candidate/Job/TrendingJobsUseCase";
 import { JobApplicationRepository } from "../../../infrastructure/database/repositories/JobApplicationRepository";
+import { SaveJobUseCase } from "../../../domain/usecases/Candidate/Job/SaveJobUseCase";
+import { GetSavedJobsUseCase } from "../../../domain/usecases/Candidate/Job/GetSavedJobsUseCase";
 
 export class JobController {
   private jobRepository = new JobRepository();
@@ -16,6 +18,8 @@ export class JobController {
     this.jobApplicationRepository,
     this.jobRepository
   );
+  private saveJobUseCase = new SaveJobUseCase(this.jobRepository);
+  private getSavedJobsUseCase = new GetSavedJobsUseCase(this.jobRepository)
   listJobs = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
@@ -34,7 +38,7 @@ export class JobController {
         (Array.isArray(arr) ? arr : [arr]).filter(
           (item: string) => item !== "" && item !== undefined
         );
-
+      const userId = req.user?.id
       const response = await this.listJobsUseCase.execute({
         page: Number(page),
         limit: Number(limit),
@@ -45,8 +49,8 @@ export class JobController {
           locations: cleanArray(locations),
           experience: cleanArray(experience),
           tags: cleanArray(tags),
-        },
-      });
+        }
+      }, userId!);
 
       res.status(HttpStatus.OK).json({
         message: response.message,
@@ -72,6 +76,7 @@ export class JobController {
       next(error);
     }
   };
+
   getTrendingJobs = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const response = await this.trendingJobsUseCase.execute();
@@ -83,4 +88,26 @@ export class JobController {
       next(error);
     }
   };
+
+  saveJob = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { jobId } = req.params
+      const userId = req.user?.id
+      const response = await this.saveJobUseCase.execute(userId!, jobId)
+      res.json({ message: response.message })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  getSavedJobs = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.id
+      const savedJobs = await this.getSavedJobsUseCase.execute(userId!)
+      res.json({ message: "Saved jobs fetched successfully", savedJobs: savedJobs })
+    } catch (error) {
+      next(error)
+    }
+
+  }
 }
