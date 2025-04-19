@@ -16,6 +16,7 @@ export interface Job {
   status: "active" | "draft" | "closed";
   createdAt: Date;
   tags: string[];
+  isSaved?: boolean
 }
 
 export type JobFilter = {

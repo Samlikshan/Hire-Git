@@ -64,6 +64,8 @@ const Sidebar = ({ currentPath }: { currentPath: string }) => {
         return `${base}/messages`;
       case "Jobs":
         return `${base}/jobs`;
+      case "Saved Jobs":
+        return `${base}/saved-jobs`;
       default:
         return "";
     }

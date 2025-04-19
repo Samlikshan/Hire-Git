@@ -10,7 +10,6 @@ import {
   Users,
   Share2,
   Bookmark,
-  Heart,
   ChevronDown,
   ChevronUp,
   Building2,
@@ -24,6 +23,7 @@ import {
   getJobDetailsService,
   getRelatedJobsService,
   isAppliedJobService,
+  saveJobService,
 } from "@/services/job";
 import { formatDate, getTimeAgo } from "@/lib/utils";
 import { JobApplicationForm } from "../forms/JobApplicationForm";
@@ -39,11 +39,11 @@ export default function JobDetailsCandidate() {
   const [job, setJob] = useState<CandidateJob>();
   const [relatedJobs, setRelatedjobs] = useState<CandidateJob[]>([]);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isSaved, setIsSaved] = useState(job?.isSaved);
   const [isApplied, setIsApplied] = useState(false);
   const [showShareTooltip, setShowShareTooltip] = useState(false);
   const [openApplyModal, setOpenApplyModal] = useState(false);
+
   useEffect(() => {
     const getJobDetails = async () => {
       if (!jobId) {
@@ -52,6 +52,7 @@ export default function JobDetailsCandidate() {
       try {
         const response = await getJobDetailsService(jobId);
         setJob(response.data.job);
+        setIsSaved(response.data.job.isSaved)
       } catch (error) {
         console.error("Error fetching job details:", error);
       }
@@ -84,6 +85,14 @@ export default function JobDetailsCandidate() {
     isApplied();
     getRelatedJobs();
   }, [jobId, user]);
+
+  const saveJob = async (jobId: string) => {
+    const response = await saveJobService(jobId)
+    if (response.status == 200) {
+      toast.success(response.data.message)
+      setIsSaved(!isSaved)
+    }
+  }
 
   if (!job) {
     return (
@@ -222,13 +231,13 @@ export default function JobDetailsCandidate() {
   return (
     <div className="flex-1 p-6 bg-gray-50 overflow-auto">
       <div className="max-w-7xl mx-auto">
-        <Link
-          to="/jobs"
+        <button
+          onClick={() => navigate(-1)}
           className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-1" />
           Back to Jobs
-        </Link>
+        </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Similar Jobs - Left Sidebar */}
@@ -274,9 +283,8 @@ export default function JobDetailsCandidate() {
                     {job.company.logo ? (
                       <img
                         className="h-full w-full rounded-lg"
-                        src={`${import.meta.env.VITE_S3_PATH}/${
-                          job.company.logo
-                        }`}
+                        src={`${import.meta.env.VITE_S3_PATH}/${job.company.logo
+                          }`}
                         alt={job.company.name}
                       />
                     ) : (
@@ -321,34 +329,32 @@ export default function JobDetailsCandidate() {
                     className={
                       isSaved ? "text-blue-600 border-blue-200 bg-blue-50" : ""
                     }
-                    onClick={() => setIsSaved(!isSaved)}
+                    onClick={() => saveJob(jobId!)}
                   >
                     <Bookmark
                       size={18}
                       className={isSaved ? "fill-blue-600" : ""}
                     />
                   </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className={
-                      isLiked ? "text-red-600 border-red-200 bg-red-50" : ""
-                    }
-                    onClick={() => setIsLiked(!isLiked)}
-                  >
-                    <Heart
-                      size={18}
-                      className={isLiked ? "fill-red-600" : ""}
-                    />
-                  </Button>
-                  <Button
+                  {isApplied ? <Button
                     size="lg"
                     className="bg-blue-600 hover:bg-blue-700 "
-                    disabled={isApplied}
+                    disabled={isApplied || job.status == 'draft' || job.status == 'closed'}
                     onClick={() => setOpenApplyModal(true)}
                   >
                     {isApplied ? "Applied" : "Apply Now"}
                   </Button>
+                    :
+                    <Button
+                      size="lg"
+                      className="bg-blue-600 hover:bg-blue-700 "
+                      disabled={isApplied || job.status == 'draft' || job.status == 'closed'}
+                      onClick={() => setOpenApplyModal(true)}
+                    >
+                      {job.status == 'draft' || job.status == 'closed' ? "Closed" : "Apply now"}
+                    </Button>
+
+                  }
                 </div>
               </div>
 
@@ -417,9 +423,8 @@ export default function JobDetailsCandidate() {
               <h2 className="text-xl font-semibold mb-4">Job Description</h2>
               <div className="relative">
                 <p
-                  className={`text-gray-700 whitespace-pre-line ${
-                    !isDescriptionExpanded ? "line-clamp-4" : ""
-                  }`}
+                  className={`text-gray-700 whitespace-pre-line ${!isDescriptionExpanded ? "line-clamp-4" : ""
+                    }`}
                 >
                   {job.description}
                 </p>

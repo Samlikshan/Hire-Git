@@ -106,3 +106,12 @@ export const getAppliedJobsService = async (candiddateId: string) => {
   );
   return response;
 };
+
+export const saveJobService = async (jobId: string) => {
+  const response = await axiosInstance.post(`/candidate/save-job/${jobId}`)
+  return response
+}
+export const listSavedJobsService = async () => {
+  const response = await axiosInstance.get('/candidate/saved-jobs')
+  return response
+}

@@ -211,19 +211,17 @@ export function CreateJobForm({ onClose, onSubmit }: CreateJobFormProps) {
         <div className="flex gap-4 mb-8">
           <button
             onClick={() => setStep(1)}
-            className={`flex-1 p-4 rounded-lg border transition-all ${
-              step === 1
-                ? "bg-gray-50 border-gray-200 shadow-sm"
-                : "border-transparent hover:bg-gray-50"
-            }`}
+            className={`flex-1 p-4 rounded-lg border transition-all ${step === 1
+              ? "bg-gray-50 border-gray-200 shadow-sm"
+              : "border-transparent hover:bg-gray-50"
+              }`}
           >
             <div className="flex items-center gap-3 mb-1">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  step === 1
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-100 text-gray-500"
-                }`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 1
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-100 text-gray-500"
+                  }`}
               >
                 1
               </div>
@@ -242,19 +240,17 @@ export function CreateJobForm({ onClose, onSubmit }: CreateJobFormProps) {
 
           <button
             onClick={() => setStep(2)}
-            className={`flex-1 p-4 rounded-lg border transition-all ${
-              step === 2
-                ? "bg-gray-50 border-gray-200 shadow-sm"
-                : "border-transparent hover:bg-gray-50"
-            }`}
+            className={`flex-1 p-4 rounded-lg border transition-all ${step === 2
+              ? "bg-gray-50 border-gray-200 shadow-sm"
+              : "border-transparent hover:bg-gray-50"
+              }`}
           >
             <div className="flex items-center gap-3 mb-1">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  step === 2
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-100 text-gray-500"
-                }`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 2
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-100 text-gray-500"
+                  }`}
               >
                 2
               </div>

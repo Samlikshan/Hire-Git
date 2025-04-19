@@ -7,11 +7,14 @@ import {
   Briefcase,
   DollarSign,
   Calendar,
-  BookmarkPlus,
+  Bookmark,
 } from "lucide-react";
 import { CandidateJob } from "@/types/job";
 import { Link } from "react-router-dom";
 import { formatDate } from "@/lib/utils";
+import { useState } from "react";
+import { saveJobService } from "@/services/job";
+import { toast } from "sonner";
 
 interface JobCardProps {
   job: CandidateJob;
@@ -19,6 +22,7 @@ interface JobCardProps {
 }
 
 export function JobCard({ job, index }: JobCardProps) {
+  const [isSaved, setIsSaved] = useState(job.isSaved);
   const getJobTypeColor = (type: string) => {
     switch (type) {
       case "Full-time":
@@ -38,6 +42,13 @@ export function JobCard({ job, index }: JobCardProps) {
     }
   };
 
+  const saveJob = async (jobId: string) => {
+    const response = await saveJobService(jobId)
+    if (response.status == 200) {
+      toast.success(response.data.message)
+      setIsSaved(!isSaved)
+    }
+  }
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -66,8 +77,8 @@ export function JobCard({ job, index }: JobCardProps) {
               {job.location}
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="ml-auto">
-            <BookmarkPlus className="h-4 w-4" />
+          <Button onClick={() => saveJob(job._id!)} variant="ghost" size="icon" className="ml-auto">
+            <Bookmark className={isSaved ? "fill-blue-600" : ""} />
           </Button>
         </div>
 

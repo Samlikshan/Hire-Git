@@ -34,6 +34,7 @@ import { NotificationPage } from "./components/Notificatoins";
 import { MessagesPage } from "./components/pages/MessaagesPage";
 import { JobApplications } from "./components/pages/JobApplications";
 import NotFound from "./components/pages/NotFound";
+import { SavedJobs } from "./components/pages/SavedJobs";
 
 function App() {
   return (
@@ -112,6 +113,7 @@ function App() {
                 path="messages"
                 element={<MessagesPage userType="candidate" />}
               />
+              <Route path="saved-jobs" element={<SavedJobs />} />
             </Route>
           </Route>
 
