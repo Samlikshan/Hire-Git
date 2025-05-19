@@ -14,7 +14,6 @@ function EmailVerification() {
     try {
       if (params.token) {
         const response = await verifyEmailService(params.token);
-        console.log(response);
         if (response.status === 200) {
           seVerificationStatus("success");
           // toast.success("Email verified successfully");

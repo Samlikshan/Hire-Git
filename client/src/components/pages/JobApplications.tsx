@@ -47,8 +47,6 @@ const AppliedJobsPage: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append("signedOfferLetter", file); // Fixed typo here
-
-      console.log(file, "offerletter");
       const response = await acceptOfferService(interviewId, formData);
 
       if (response.status == 200) {

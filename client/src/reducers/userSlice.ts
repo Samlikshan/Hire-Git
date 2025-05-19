@@ -56,7 +56,6 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     login: (state, action: PayloadAction<UserData>) => {
-      console.log(action.payload, "payload");
       state.isAuthenticated = true;
       state.role = action.payload.role;
       state.userData = action.payload;
@@ -68,7 +67,6 @@ const userSlice = createSlice({
       logoutService();
     },
     updateUserData: (state, action: PayloadAction<Partial<UserData>>) => {
-      console.log(action, "updating exp");
       if (state.userData) {
         state.userData = { ...state.userData, ...action.payload };
       }

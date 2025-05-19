@@ -236,10 +236,6 @@ export const MessagesPage: React.FC<ChatProps> = ({
         // Delay marking messages as read to allow the separator to be visible longer
         setTimeout(async () => {
           try {
-            console.log(
-              "Marking all messages as read for chat:",
-              selectedChat._id
-            );
             await axiosInstance.post(
               `/chat/${selectedChat._id}/mark-read`,
               {},

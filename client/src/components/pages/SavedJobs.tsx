@@ -21,7 +21,6 @@ export function SavedJobs() {
       const response = await listSavedJobsService()
 
       if (response.status == 200) {
-        console.log(response)
         setJobs(response.data.savedJobs)
       }
     }

@@ -124,7 +124,6 @@ export class InterviewController {
         ? (req.file as Express.MulterS3.File).key
         : req.body.key;
 
-      console.log(interviewId, offerLetter);
       const response = await this.hireCandidateUseCase.execute(
         interviewId,
         offerLetter
@@ -156,7 +155,6 @@ export class InterviewController {
   ) => {
     try {
       const { interviewId } = req.params;
-      console.log(req.body, req.file);
       const signedOfferLetter = req.file
         ? (req.file as Express.MulterS3.File).key
         : req.body.key;

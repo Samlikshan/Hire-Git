@@ -77,7 +77,6 @@ export class ChatController {
           ? "image"
           : "file"
         : "text";
-      console.log(content, ":content", type, ":type");
       const message = await this.sendMessageUseCase.execute(
         chatId,
         senderType,

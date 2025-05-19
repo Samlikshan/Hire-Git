@@ -40,15 +40,12 @@ const VideoConference = () => {
       }
       try {
         const response = await validateRoomAccessService(roomID);
-        console.log(response, "validate room acess response");
         if (response.status == 400) {
-          console.log("hai");
           navigate("/dashbaord");
           return;
         }
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 400) {
-          console.log("Received 400 Bad Request");
           navigate("/");
         } else {
           console.error(
@@ -76,7 +73,6 @@ const VideoConference = () => {
       }
 
       try {
-        console.log("Initializing with roomID:", roomID);
         const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
           Number(appID),
           serverSecret,
@@ -114,12 +110,10 @@ const VideoConference = () => {
           layout: "Auto",
           showLeavingView: true,
           onUserJoin: (users) => {
-            console.log("Users joined:", users);
           },
 
           // Modify your onUserLeave handler
           onUserLeave: (users) => {
-            console.log("Users left:", users);
             const leftUserIds = users.map((u) => u.userID);
 
             setParticipants((prev) => {
@@ -132,13 +126,11 @@ const VideoConference = () => {
               setIsRoomEmpty(isEmpty);
               roomEmptyRef.current = isEmpty;
 
-              console.log("Remaining participants after leave:", remaining);
               return remaining;
             });
           },
 
           onLeaveRoom: async () => {
-            console.log("Current user leaving room manually");
             if (role === "company") {
               // Navigate to evaluation page with room ID
               navigate("/company/evaluation", { state: { roomID } });
