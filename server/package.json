@@ -5,7 +5,9 @@
   "main": "server.ts",
   "scripts": {
     "test": "jest",
-    "dev": "nodemon --exec ts-node src/interfaces/server.ts"
+    "dev": "nodemon --exec ts-node src/interfaces/server.ts",
+    "build": "tsc",
+    "start": "node dist/interfaces/server.js"
   },
   "repository": {
     "type": "git",
