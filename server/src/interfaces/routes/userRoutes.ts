@@ -57,16 +57,33 @@ router.put(
 );
 
 router.put("/experience", verifyToken(), profileController.addExperience);
+
+//Notification
+router.get(
+  "/unread-notifications/:candidateId",
+  verifyToken(),
+  notificationsController.getUnreadNotifications
+);
 router.get(
   "/notifications/:candidateId",
   verifyToken(),
   notificationsController.getNotifications
 );
+router.patch(
+  "/notifications/:notificationId/read",
+  notificationsController.markAsRead
+);
+router.patch(
+  "/notifications/mark-all-as-read/:userId",
+  notificationsController.markAllAsRead
+);
+
 router.get(
   "/job/applied/:candidateId",
   verifyToken(),
   jobApplicationController.getAppliedjobs
 );
-router.post("/save-job/:jobId", verifyToken(), jobController.saveJob)
-router.get("/saved-jobs", verifyToken(), jobController.getSavedJobs)
+router.post("/save-job/:jobId", verifyToken(), jobController.saveJob);
+router.get("/saved-jobs", verifyToken(), jobController.getSavedJobs);
+
 export default router;

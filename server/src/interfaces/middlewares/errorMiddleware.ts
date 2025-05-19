@@ -17,7 +17,6 @@ export const errorMiddleware = (
         ? error.status
         : HttpStatus.INTERNAL_SERVER_ERROR;
     const message = error.message || HttpMessage.INTERNAL_ERROR;
-
     // Log the error
     logger.error(
       `[${req.method}] ${req.path} >> StatusCode:: ${status}, Message:: ${message}`

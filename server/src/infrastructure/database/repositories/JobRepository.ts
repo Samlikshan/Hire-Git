@@ -4,15 +4,61 @@ import { IJobRepository } from "../../../domain/repositories/IJobRepository";
 import { JobModel } from "../models/jobModel";
 import { CandidateModel } from "../models/candidateModel";
 import { Candidate } from "../../../domain/entities/Candidate";
+import mongoose from "mongoose";
+import { startOfMonth, endOfMonth } from "date-fns";
+import { TrendData } from "../../../domain/entities/Dashboard";
+import { FilterQuery } from "mongoose";
 
 export class JobRepository implements IJobRepository {
   async createJob(jobData: Job): Promise<Job> {
     return JobModel.create({ ...jobData });
   }
-  async findJobsByCompany(companyId: string): Promise<Job[] | null> {
-    return JobModel.find({ company: companyId, deleted: false }).sort({
-      createdAt: -1,
-    });
+  async findJobsByCompany(
+    companyId: string,
+    page: number,
+    limit: number,
+    filters: {
+      status?: string;
+      department?: string[];
+      location?: string[];
+      type?: string[];
+      experience?: string[];
+    },
+    search?: string
+  ): Promise<{ jobs: Job[]; total: number }> {
+    const query: any = {
+      company: companyId,
+      deleted: false,
+    };
+
+    if (filters.status) {
+      query.status = filters.status;
+    }
+    if (filters.department?.length) {
+      query.department = { $in: filters.department };
+    }
+    if (filters.location?.length) {
+      query.location = { $in: filters.location };
+    }
+    if (filters.type?.length) {
+      query.type = { $in: filters.type };
+    }
+    if (filters.experience?.length) {
+      query.experienceLevel = { $in: filters.experience };
+    }
+
+    if (search) {
+      query.$text = { $search: search };
+    }
+
+    const total = await JobModel.countDocuments(query);
+    const jobs = await JobModel.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
+    return { jobs, total };
   }
   async findById(id: string): Promise<Job | null> {
     return JobModel.findOne({ _id: id }).populate("company").lean();
@@ -40,7 +86,7 @@ export class JobRepository implements IJobRepository {
       tags: string[];
     };
   }): Promise<{ jobs: Job[]; total: number }> {
-    const query: any = {
+    const query: FilterQuery<Job> = {
       status: "active",
       deleted: false,
     };
@@ -106,16 +152,114 @@ export class JobRepository implements IJobRepository {
     );
   }
   async isSavedJob(userId: string, jobId: string): Promise<Candidate[] | null> {
-    return CandidateModel.findOne({ _id: userId, savedJobs: { $in: [jobId] } })
+    return CandidateModel.findOne({ _id: userId, savedJobs: { $in: [jobId] } });
   }
   async saveJob(userId: string, jobId: string): Promise<UpdateWriteOpResult> {
-    return CandidateModel.updateOne({ _id: userId }, { $addToSet: { savedJobs: jobId } })
-
+    return CandidateModel.updateOne(
+      { _id: userId },
+      { $addToSet: { savedJobs: jobId } }
+    );
   }
   async removeJob(userId: string, jobId: string): Promise<UpdateWriteOpResult> {
-    return CandidateModel.updateOne({ _id: userId }, { $pull: { savedJobs: jobId } })
+    return CandidateModel.updateOne(
+      { _id: userId },
+      { $pull: { savedJobs: jobId } }
+    );
   }
   async getSavedJobs(userId: string): Promise<Candidate | null> {
-    return CandidateModel.findOne({ _id: userId }).populate({ path: 'savedJobs', populate: 'company' }).select("savedJobs").lean()
+    return CandidateModel.findOne({ _id: userId })
+      .populate({ path: "savedJobs", populate: "company" })
+      .select("savedJobs")
+      .lean();
+  }
+  async countActiveJobs(companyId: string): Promise<number> {
+    return JobModel.countDocuments({
+      company: companyId,
+      status: "active",
+      deleted: false,
+    });
+  }
+
+  async countJobs(companyId: string): Promise<number> {
+    return JobModel.countDocuments({
+      company: companyId,
+      deleted: false,
+    });
+  }
+  async countMonthlyJobs(companyId: string): Promise<number> {
+    const start = startOfMonth(new Date());
+    const end = endOfMonth(new Date());
+    return JobModel.countDocuments({
+      company: companyId,
+      createdAt: { $gte: start, $lte: end },
+    });
+  }
+  async listCompanyJobs(params: {
+    companyId: string;
+    page: number;
+    limit: number;
+    status: "all" | "active";
+  }): Promise<{
+    jobs: Job[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    const { companyId, page = 1, limit = 5, status } = params;
+    const skip = (page - 1) * limit;
+
+    const query: FilterQuery<Job> = {
+      company: companyId,
+      deleted: false,
+    };
+
+    if (status === "active") {
+      query.status = "active";
+    }
+
+    const [jobs, total] = await Promise.all([
+      JobModel.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      JobModel.countDocuments(query),
+    ]);
+
+    return {
+      jobs,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+  // infrastructure/repositories/JobRepository.ts
+  async getJobTrends(companyId: string, timeframe: "weekly" | "monthly") {
+    const groupFormat = timeframe === "weekly" ? "%Y-%U" : "%Y-%m";
+
+    return JobModel.aggregate([
+      {
+        $match: {
+          company: new mongoose.Types.ObjectId(companyId),
+          createdAt: { $exists: true },
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: groupFormat, date: "$createdAt" } },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+      {
+        $project: {
+          label: "$_id",
+          value: "$count",
+          _id: 0,
+        },
+      },
+    ]);
   }
 }

@@ -5,11 +5,13 @@ import { JobController } from "../controllers/Company/JobController";
 import { FileUpload } from "../../utils/multerService";
 import { JobApplicationController } from "../controllers/Company/JobApplicationController";
 import { companyMiddleware } from "../middlewares/companyMiddleware";
+import { DashboardController } from "../controllers/Company/DashboardController";
 
 const router = express.Router();
 const profileController = new ProfileController();
 const jobController = new JobController();
 const jobApplicationController = new JobApplicationController();
+const dashboardController = new DashboardController();
 
 const uploadOptions = {
   fileTypes: ["jpg", "jpeg", "png"],
@@ -67,4 +69,5 @@ router.post(
   jobApplicationController.scheduleInterview
 );
 
+router.get("/dashboard", verifyToken(), dashboardController.getStats);
 export default router;

@@ -96,7 +96,7 @@ export default function CandidateTable() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-6 p-6">
       {/* Search Bar */}
       <div className="flex items-center space-x-2">
         <Input

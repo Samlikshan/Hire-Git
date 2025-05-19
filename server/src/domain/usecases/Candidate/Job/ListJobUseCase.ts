@@ -20,7 +20,7 @@ export class ListJobsUseCase {
     if (userId) {
       const response = await this.jobRepository.getSavedJobs(userId)
       const savedJobIds = new Set()
-      response?.savedJobs.map((job) => {
+      response?.savedJobs?.map((job) => {
         savedJobIds.add(job._id?.toString())
       })
       const updatedJobs = jobs.map((job) => {

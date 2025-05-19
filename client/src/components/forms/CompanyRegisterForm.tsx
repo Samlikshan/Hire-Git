@@ -103,8 +103,9 @@ export default function CompanyRegisterForm() {
     setErrors({});
 
     try {
+      console.log(formData);
       const response = await companyRegisterSerivce(formData);
-
+      console.log(response);
       if (response.status !== 200) throw new Error("Failed to register");
 
       setErrors({});
@@ -122,6 +123,7 @@ export default function CompanyRegisterForm() {
 
       // setEmailSent(true);
     } catch (err: unknown) {
+      console.log(err, "error");
       // Type error as unknown and handle it
       const errorMessage =
         err instanceof Error ? err.message : "Error occurred";

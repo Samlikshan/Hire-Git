@@ -8,7 +8,7 @@ const MessageSchema = new Schema(
     chatId: { type: Schema.Types.ObjectId, ref: "Chat", required: true },
     senderType: {
       type: String,
-      enum: ["Companies", "Candidates"],
+      enum: ["company", "candidate"],
       required: true,
     },
     senderId: { type: Schema.Types.ObjectId, required: true },

@@ -17,4 +17,25 @@ export class MessageRepository implements IMessageRepository {
   ): Promise<Message | null> {
     return messageModel.findByIdAndUpdate(messageId, { status }, { new: true });
   }
+
+  // src/infrastructure/database/repositories/MessageRepository.ts
+  async markMessagesAsRead(chatId: string, userId: string): Promise<void> {
+    await messageModel.updateMany(
+      {
+        chatId,
+        senderId: { $ne: userId },
+        status: { $in: ["sent", "delivered"] },
+      },
+      { $set: { status: "read" } }
+    );
+  }
+  async getUnreadMessages(chatId: string, userId: string): Promise<Message[]> {
+    return messageModel
+      .find({
+        chatId,
+        senderId: { $ne: userId },
+        status: { $in: ["sent", "delivered"] },
+      })
+      .sort("timestamp");
+  }
 }

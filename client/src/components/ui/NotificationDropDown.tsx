@@ -1,3 +1,4 @@
+// src/components/NotificationDropDown.tsx
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -7,8 +8,6 @@ import {
   Calendar,
   X,
   ChevronRight,
-  // Video,
-  // ExternalLink,
 } from "lucide-react";
 import { Notification } from "@/types/job";
 
@@ -43,62 +42,23 @@ const NotificationIcon = ({ type }: { type: string }) => {
   }
 };
 
-// const ActionButton: React.FC<{ type: string; url: string }> = ({
-//   type,
-//   url,
-// }) => {
-//   const baseClasses =
-//     "mt-2 flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg transition-colors";
-
-//   switch (type) {
-//     case "join":
-//       return (
-//         <a
-//           href={url}
-//           className={`${baseClasses} bg-purple-100 text-purple-700 hover:bg-purple-200`}
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           <Video size={16} />
-//           Join Interview
-//         </a>
-//       );
-//     case "view":
-//       return (
-//         <a
-//           href={url}
-//           className={`${baseClasses} bg-blue-50 text-blue-700 hover:bg-blue-100`}
-//         >
-//           <ExternalLink size={16} />
-//           View Details
-//         </a>
-//       );
-//     case "reply":
-//       return (
-//         <a
-//           href={url}
-//           className={`${baseClasses} bg-green-50 text-green-700 hover:bg-green-100`}
-//         >
-//           <MessageSquare size={16} />
-//           Reply
-//         </a>
-//       );
-//     default:
-//       return null;
-//   }
-// };
-
 interface NotificationDropdownProps {
   notifications: Notification[];
   isOpen: boolean;
   onClose: () => void;
+  onMarkAsRead: (id: string) => void;
+  onMarkAllAsRead: () => void;
 }
 
 export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   notifications,
   isOpen,
   onClose,
+  onMarkAsRead,
+  onMarkAllAsRead,
 }) => {
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -114,9 +74,11 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 <h3 className="text-lg font-semibold text-gray-900">
                   Notifications
                 </h3>
-                <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-600 rounded-full">
-                  {notifications?.filter((n) => !n.read).length} new
-                </span>
+                {unreadCount > 0 && (
+                  <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-600 rounded-full">
+                    {unreadCount} new
+                  </span>
+                )}
               </div>
               <button
                 onClick={onClose}
@@ -130,7 +92,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
           <div className="max-h-[400px] overflow-y-auto">
             {notifications?.map((notification) => (
               <div
-                key={notification.id}
+                key={notification._id}
                 className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
                   !notification.read ? "bg-blue-50/40" : ""
                 }`}
@@ -139,23 +101,34 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                   <NotificationIcon type={notification.type} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="font-medium text-gray-900 text-sm">
+                      <p
+                        className={`text-sm ${
+                          !notification.read
+                            ? "font-medium text-gray-900"
+                            : "text-gray-600"
+                        }`}
+                      >
                         {notification.title}
                       </p>
-                      <p className="text-xs text-gray-400 whitespace-nowrap">
-                        {notification.time}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-gray-400 whitespace-nowrap">
+                          {new Date(
+                            notification.createdAt
+                          ).toLocaleDateString()}
+                        </p>
+                        {!notification.read && (
+                          <button
+                            onClick={() => onMarkAsRead(notification._id)}
+                            className="text-xs text-blue-600 hover:text-blue-700"
+                          >
+                            Mark read
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <p className="text-gray-600 text-sm mt-1">
                       {notification.message}
                     </p>
-
-                    {/* {notification.action.type && notification.action.url && (
-                      <ActionButton
-                        type={notification.action.type}
-                        url={notification.action.url}
-                      />
-                    )} */}
                   </div>
                   {!notification.read && (
                     <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
@@ -165,13 +138,23 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
             ))}
           </div>
 
-          <div className="p-4 bg-gray-50 border-t border-gray-100">
+          <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
             <button
-              onClick={onClose}
-              className="w-full flex items-center justify-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+              onClick={onMarkAllAsRead}
+              className={`text-sm ${
+                unreadCount > 0
+                  ? "text-blue-600 hover:text-blue-700"
+                  : "text-gray-400 cursor-not-allowed"
+              }`}
+              disabled={unreadCount === 0}
             >
-              View All Notifications
-              <ChevronRight size={16} />
+              Mark all as read
+            </button>
+            <button
+              className="text-sm text-gray-700 hover:text-gray-900 flex items-center gap-1"
+              onClick={onClose}
+            >
+              View all <ChevronRight size={16} />
             </button>
           </div>
         </motion.div>

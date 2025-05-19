@@ -17,6 +17,8 @@ export class Job {
     public tags: string[],
     public status: "draft" | "active" | "closed",
     public deadline: string,
+    public createdAt?: Date,
+    public updatedAt?: Date,
     public deleted?: boolean,
     public _id?: string
   ) {}

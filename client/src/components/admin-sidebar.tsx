@@ -7,6 +7,7 @@ import {
   LogOut,
   LayoutDashboard,
   Bell,
+  Subtitles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { logout } from "@/reducers/userSlice";
 import { useDispatch } from "react-redux";
+
 const NavItem = ({ to, icon: Icon, children, notifications }) => {
   return (
     <NavLink
@@ -57,7 +59,7 @@ export default function AdminSidebar() {
         </div>
       </div>
 
-      <Separator className="my-6" />
+      <Separator className="my-4" />
 
       {/* Navigation Sections */}
       <div className="flex-1 space-y-6">
@@ -77,6 +79,9 @@ export default function AdminSidebar() {
           </NavItem> */}
           <NavItem to="/admin/candidates" icon={Users}>
             Candidates
+          </NavItem>
+          <NavItem to="/admin/subscriptions" icon={Subtitles}>
+            Subscriptions
           </NavItem>
         </div>
 

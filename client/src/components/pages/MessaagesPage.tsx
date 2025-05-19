@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Search,
   Send,
@@ -29,32 +29,39 @@ export const MessagesPage: React.FC<ChatProps> = ({
 }) => {
   const { userData } = useSelector((state: RootState) => state.user);
   const [chats, setChats] = useState<Chat[]>([]);
-
+  const [fileUploading, setFileUploading] = useState(false);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [readMessages, setReadMessages] = useState<Message[]>([]);
+  const [unreadMessages, setUnreadMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    // Add a slight delay to ensure the DOM has rendered
+    setTimeout(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100); // 100ms delay to allow DOM rendering
+  };
+
+  // Scroll to bottom whenever messages update
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     if (!userData?._id) {
       console.log("No user ID available, not connecting socket");
       return;
     }
-    const handleNewMessage = (message: Message) => {
-      console.log(message);
-      setMessages((prev) => [...prev, message]);
-      setChats((prev) =>
-        prev.map((chat) =>
-          chat._id === message.chatId ? { ...chat, lastMessage: message } : chat
-        )
-      );
-    };
-    console.log("Setting up socket with user ID:", userData?._id);
 
-    // Initialize socket connection
     const socketInstance = io("http://localhost:3000", {
       withCredentials: true,
       transports: ["websocket", "polling"],
@@ -65,36 +72,223 @@ export const MessagesPage: React.FC<ChatProps> = ({
         "Socket connected successfully! Socket ID:",
         socketInstance.id
       );
-      // setConnected(true);
-
-      // Send user ID after successful connection
       socketInstance.emit("identify", userData?._id);
-      console.log("Sent identify event with user ID:", userData?._id);
+      if (selectedChat) {
+        socketInstance.emit("join_chat", selectedChat._id);
+      }
     });
-    const handleNewChat = (chat: Chat) => {
-      console.log("New chat received:", chat);
+
+    socketInstance.on("online_users", (userIds: string[]) => {
+      setOnlineUsers(new Set(userIds));
+    });
+
+    socketInstance.on("user_online", (userId: string) => {
+      setOnlineUsers((prev) => new Set([...prev, userId]));
+    });
+
+    socketInstance.on("user_offline", (userId: string) => {
+      setOnlineUsers((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+    });
+
+    socketInstance.on("new_message", async (message: Message) => {
+      console.log("Received new message:", message);
+      setMessages((prev) => [...prev, message]);
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat._id === message.chatId
+            ? {
+                ...chat,
+                lastMessage: message,
+                unreadCount: (chat.unreadCount || 0) + 1,
+              }
+            : chat
+        )
+      );
+
+      if (
+        selectedChat?._id === message.chatId &&
+        message.senderId !== userData?._id
+      ) {
+        try {
+          console.log("Marking new message as read:", message._id);
+          await axios.post(
+            `http://localhost:3000/api/chat/${message.chatId}/mark-read`,
+            { messageId: message._id },
+            { withCredentials: true }
+          );
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg._id === message._id ? { ...msg, status: "read" } : msg
+            )
+          );
+          setReadMessages((prev) => [...prev, { ...message, status: "read" }]);
+          setUnreadMessages((prev) =>
+            prev.filter((msg) => msg._id !== message._id)
+          );
+          setChats((prev) =>
+            prev.map((chat) =>
+              chat._id === message.chatId ? { ...chat, unreadCount: 0 } : chat
+            )
+          );
+        } catch (error) {
+          console.error("Error marking message as read:", error);
+        }
+      } else {
+        if (message.senderId === userData?._id) {
+          setReadMessages((prev) => [...prev, message]);
+        } else {
+          setUnreadMessages((prev) => [...prev, message]);
+        }
+      }
+      // scrollToBottom is called via the useEffect hook
+    });
+
+    socketInstance.on("chat_created", (chat: Chat) => {
       setChats((prev) => {
-        console.log("Previous chats:", prev);
-        // Prevent duplicates
         if (!prev.some((c) => c._id === chat._id)) {
           return [...prev, chat];
         }
         return prev;
       });
-    };
+    });
 
-    socketInstance?.on("chat_created", handleNewChat);
+    socketInstance.on(
+      "message_read",
+      ({ messageId, chatId }: { messageId: string; chatId: string }) => {
+        console.log("Message read event received:", { messageId, chatId });
+        if (selectedChat?._id === chatId) {
+          setMessages((prev) => {
+            const updatedMessages = prev.map((msg) =>
+              msg._id === messageId ? { ...msg, status: "read" } : msg
+            );
+            console.log("Updated messages with read status:", updatedMessages);
+            return updatedMessages;
+          });
+          setReadMessages((prev) => {
+            const messageToMove =
+              prev.find((msg) => msg._id === messageId) ||
+              unreadMessages.find((msg) => msg._id === messageId);
+            if (messageToMove) {
+              const updatedReadMessages = prev.filter(
+                (msg) => msg._id !== messageId
+              );
+              return [
+                ...updatedReadMessages,
+                { ...messageToMove, status: "read" },
+              ];
+            }
+            return prev;
+          });
+          setUnreadMessages((prev) =>
+            prev.filter((msg) => msg._id !== messageId)
+          );
+          setChats((prev) =>
+            prev.map((chat) =>
+              chat._id === chatId
+                ? {
+                    ...chat,
+                    unreadCount: Math.max((chat.unreadCount || 1) - 1, 0),
+                  }
+                : chat
+            )
+          );
+        }
+        // scrollToBottom is called via the useEffect hook
+      }
+    );
+
     socketInstance.on("connect_error", (error) => {
       console.error("Socket connection error:", error);
-      // setConnected(false);
     });
 
-    socketInstance?.on("new_message", handleNewMessage);
     socketInstance.on("disconnect", () => {
       console.log("Socket disconnected");
-      // setConnected(false);
     });
-  }, []);
+
+    const fetchMessages = async () => {
+      if (!selectedChat) return;
+      try {
+        const [allMessagesResponse, unreadMessagesResponse] = await Promise.all(
+          [
+            axios.get(
+              `http://localhost:3000/api/chat/${selectedChat._id}/messages`,
+              {
+                withCredentials: true,
+              }
+            ),
+            axios.get(
+              `http://localhost:3000/api/chat/${selectedChat._id}/unread-messages`,
+              {
+                withCredentials: true,
+              }
+            ),
+          ]
+        );
+        setMessages(allMessagesResponse.data);
+        const unread = unreadMessagesResponse.data;
+        console.log("Fetched unread messages:", unread);
+        setUnreadMessages(unread);
+        setReadMessages(
+          allMessagesResponse.data.filter(
+            (msg: Message) => !unread.some((u: Message) => u._id === msg._id)
+          )
+        );
+        // scrollToBottom is called via the useEffect hook
+
+        // Delay marking messages as read to allow the separator to be visible longer
+        setTimeout(async () => {
+          try {
+            console.log(
+              "Marking all messages as read for chat:",
+              selectedChat._id
+            );
+            await axios.post(
+              `http://localhost:3000/api/chat/${selectedChat._id}/mark-read`,
+              {},
+              { withCredentials: true }
+            );
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.senderId !== userData?._id && msg.status !== "read"
+                  ? { ...msg, status: "read" }
+                  : msg
+              )
+            );
+            setReadMessages((prev) => [
+              ...prev,
+              ...unread.map((msg: Message) => ({ ...msg, status: "read" })),
+            ]);
+            setUnreadMessages([]);
+            setChats((prev) =>
+              prev.map((chat) =>
+                chat._id === selectedChat._id
+                  ? { ...chat, unreadCount: 0 }
+                  : chat
+              )
+            );
+          } catch (error) {
+            console.error("Error marking messages as read:", error);
+          }
+        }, 3000); // 3-second delay
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      }
+    };
+
+    fetchMessages();
+
+    return () => {
+      if (selectedChat) {
+        socketInstance.emit("leave_chat", selectedChat._id);
+      }
+      socketInstance.disconnect();
+    };
+  }, [userData?._id, selectedChat]);
+
   useEffect(() => {
     const fetchChats = async () => {
       try {
@@ -102,7 +296,7 @@ export const MessagesPage: React.FC<ChatProps> = ({
         setChats(response.data);
       } catch (error) {
         console.error("Error fetching chats:", error);
-        setChats([]); // Ensure we fall back to empty array
+        setChats([]);
       } finally {
         setLoading(false);
       }
@@ -112,7 +306,11 @@ export const MessagesPage: React.FC<ChatProps> = ({
   }, [userType]);
 
   const handleSendMessage = async () => {
-    if (!messageInput.trim() || !selectedChat || !userData || !userData._id)
+    if (
+      (!messageInput.trim() && !fileUploading) ||
+      !selectedChat ||
+      !userData?._id
+    )
       return;
 
     const tempId = Date.now().toString();
@@ -122,12 +320,13 @@ export const MessagesPage: React.FC<ChatProps> = ({
       senderType: userType,
       senderId: userData._id,
       content: messageInput.trim(),
+      type: "text",
       status: "sent",
       createdAt: new Date().toISOString(),
     };
 
-    // Optimistic update
     setMessages((prev) => [...prev, newMessage]);
+    setReadMessages((prev) => [...prev, newMessage]);
     setMessageInput("");
 
     try {
@@ -138,64 +337,186 @@ export const MessagesPage: React.FC<ChatProps> = ({
           senderType: userType,
           senderId: userData._id,
           content: messageInput.trim(),
+          type: "text",
         },
         { withCredentials: true }
       );
 
-      // Replace optimistic message with server response
       setMessages((prev) =>
+        prev.map((msg) => (msg._id === tempId ? data : msg))
+      );
+      setReadMessages((prev) =>
         prev.map((msg) => (msg._id === tempId ? data : msg))
       );
     } catch (error) {
       console.error("Message send failed:", error);
       setMessages((prev) => prev.filter((msg) => msg._id !== tempId));
+      setReadMessages((prev) => prev.filter((msg) => msg._id !== tempId));
     } finally {
       setIsSending(false);
+      // scrollToBottom is called via the useEffect hook
     }
   };
 
-  useEffect(() => {
-    if (!selectedChat) return;
-    const socketInstance = io("http://localhost:3000", {
-      withCredentials: true,
-      transports: ["websocket", "polling"],
-    });
+  const handleFileUpload = async (file: File) => {
+    if (!selectedChat || !userData?._id) return;
 
-    const fetchMessages = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:3000/api/chat/${selectedChat._id}/messages`,
-          { withCredentials: true }
-        );
-        setMessages(response.data);
-        socketInstance?.emit("join_chat", selectedChat._id);
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-      }
+    setFileUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("senderType", userType);
+    formData.append("senderId", userData._id);
+
+    const tempId = Date.now().toString();
+    const tempMessage: Message = {
+      _id: tempId,
+      chatId: selectedChat._id,
+      senderType: userType,
+      senderId: userData._id,
+      content: "Uploading...",
+      type: file.type.startsWith("image/") ? "image" : "file",
+      status: "sent",
+      createdAt: new Date().toISOString(),
     };
 
-    fetchMessages();
+    setMessages((prev) => [...prev, tempMessage]);
+    setReadMessages((prev) => [...prev, tempMessage]);
 
-    return () => {
-      socketInstance?.emit("leave_chat", selectedChat._id);
-    };
-  }, [selectedChat]);
+    try {
+      const { data } = await axios.post(
+        `http://localhost:3000/api/chat/${selectedChat._id}/messages`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        }
+      );
+
+      setMessages((prev) =>
+        prev.map((msg) => (msg._id === tempId ? data : msg))
+      );
+      setReadMessages((prev) =>
+        prev.map((msg) => (msg._id === tempId ? data : msg))
+      );
+    } catch (error) {
+      console.error("Upload failed:", error);
+      setMessages((prev) => prev.filter((msg) => msg._id !== tempId));
+      setReadMessages((prev) => prev.filter((msg) => msg._id !== tempId));
+    } finally {
+      setFileUploading(false);
+      // scrollToBottom is called via the useEffect hook
+    }
+  };
+
   const getChatDisplayData = (chat: Chat) => {
     const isCompanyView = userType === "company";
+    const otherUser = isCompanyView ? chat.candidateId : chat.companyId;
+    const otherUserId = (otherUser as { _id: string })._id;
+    const isOnline = onlineUsers.has(otherUserId);
+
     return {
       id: chat._id,
       name: isCompanyView
         ? (chat.candidateId as { name: string }).name
-        : (chat.companyId as { name: string }).name, // Replace with actual data from API
+        : (chat.companyId as { name: string }).name,
       avatar: isCompanyView
         ? (chat.candidateId as { profileImage: string }).profileImage
         : (chat.companyId as { logo: string }).logo,
-      role: (chat.jobId as { title: string }).title, // Replace with actual job title
+      role: (chat.jobId as { title: string }).title,
       lastActive: new Date(chat.createdAt).toLocaleDateString(),
-      isOnline: false,
+      isOnline,
       lastMessage: chat.lastMessage?.content,
+      unreadCount: chat.unreadCount || 0,
     };
   };
+
+  const renderMessageContent = (msg: Message) => {
+    switch (msg.type) {
+      case "image":
+        return (
+          <img
+            src={msg.content}
+            alt="Uploaded content"
+            className="max-w-xs max-h-48 rounded-lg object-cover"
+          />
+        );
+      case "file":
+        return (
+          <a
+            href={msg.content}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline flex items-center gap-1"
+          >
+            <Paperclip size={16} />
+            Download File
+          </a>
+        );
+      default:
+        return <p className="text-sm">{msg.content}</p>;
+    }
+  };
+
+  const renderMessage = (
+    msg: Message,
+    index: number,
+    messageArray: Message[]
+  ) => (
+    <motion.div
+      key={msg._id}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`flex ${
+        msg.senderId === userData?._id ? "justify-end" : "justify-start"
+      }`}
+    >
+      {msg.senderId !== userData?._id &&
+        index > 0 &&
+        messageArray[index - 1].senderId !== msg.senderId && (
+          <img
+            src={`${import.meta.env.VITE_S3_PATH}/${
+              getChatDisplayData(selectedChat!).avatar
+            }`}
+            alt={getChatDisplayData(selectedChat!).name}
+            className="w-8 h-8 rounded-full object-cover mr-2"
+          />
+        )}
+      <div
+        className={`max-w-[70%] flex flex-col ${
+          msg.senderId === userData?._id ? "items-end" : "items-start"
+        }`}
+      >
+        <div
+          className={`p-3 rounded-xl shadow-sm ${
+            msg.senderId === userData?._id
+              ? "bg-blue-500 text-white rounded-br-none"
+              : "bg-white text-gray-900 rounded-bl-none"
+          } ${msg.type === "image" ? "p-0 bg-transparent" : ""}`}
+        >
+          {renderMessageContent(msg)}
+        </div>
+        <div className="flex items-center gap-1 mt-1">
+          <span className="text-xs text-gray-400">
+            {new Date(msg.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+          {msg.senderId === userData?._id && (
+            <span className="text-gray-400">
+              {msg.status === "sent" && <CheckCheck size={12} />}
+              {msg.status === "delivered" && <CheckCheck size={12} />}
+              {msg.status === "read" && (
+                <CheckCheck size={12} className="text-blue-500" />
+              )}
+            </span>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
 
   if (loading) {
     return <div className="flex justify-center p-4">Loading chats...</div>;
@@ -203,14 +524,12 @@ export const MessagesPage: React.FC<ChatProps> = ({
 
   return (
     <div className="h-screen bg-white flex rounded-lg">
-      {/* Chat List */}
       <div
         className={`w-full md:w-80 border-r border-gray-200 flex flex-col bg-white ${
           showMobileChat ? "hidden md:flex" : "flex"
         }`}
       >
         <div className="p-4 border-b border-gray-200 bg-white sticky top-0 rounded-lg">
-          {/* <h2 className="text-xl font-semibold text-gray-900 mb-4">Messages</h2> */}
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search
@@ -282,11 +601,11 @@ export const MessagesPage: React.FC<ChatProps> = ({
                       <p className="text-sm text-gray-600 mt-1 truncate">
                         {user.lastMessage}
                       </p>
-                      {/* {user?.unreadCount && user?.unreadCount > 0 && (
-                      <span className="inline-flex items-center px-2 py-0.5 mt-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-600">
-                        {user?.unreadCount} new
-                      </span>
-                    )} */}
+                      {user.unreadCount > 0 && (
+                        <span className="inline-flex items-center px-2 py-0.5 mt-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-600">
+                          {user.unreadCount} new
+                        </span>
+                      )}
                     </div>
                   </motion.button>
                 );
@@ -295,7 +614,6 @@ export const MessagesPage: React.FC<ChatProps> = ({
         </div>
       </div>
 
-      {/* Chat Area */}
       <AnimatePresence>
         {selectedChat ? (
           <motion.div
@@ -306,7 +624,6 @@ export const MessagesPage: React.FC<ChatProps> = ({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
           >
-            {/* Chat Header */}
             <div className="p-4 bg-white border-b border-gray-200 sticky top-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -343,82 +660,66 @@ export const MessagesPage: React.FC<ChatProps> = ({
               </div>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((msg, index) => (
-                <motion.div
-                  key={msg._id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${
-                    msg.senderId === userData?._id
-                      ? "justify-end"
-                      : "justify-start"
-                  }`}
-                >
-                  {msg.senderId !== userData?._id &&
-                    index > 0 &&
-                    messages[index - 1].senderId !== msg.senderId && (
-                      <img
-                        src={`${import.meta.env.VITE_S3_PATH}/${
-                          getChatDisplayData(selectedChat).avatar
-                        }`}
-                        alt={getChatDisplayData(selectedChat).name}
-                        className="w-8 h-8 rounded-full object-cover mr-2"
-                      />
-                    )}
-                  <div
-                    className={`max-w-[70%] flex flex-col ${
-                      msg.senderId === userData?._id
-                        ? "items-end"
-                        : "items-start"
-                    }`}
-                  >
-                    <div
-                      className={`p-3 rounded-xl shadow-sm ${
-                        msg.senderId === userData?._id
-                          ? "bg-blue-500 text-white rounded-br-none"
-                          : "bg-white text-gray-900 rounded-bl-none"
-                      }`}
-                    >
-                      <p className="text-sm">{msg.content}</p>
-                    </div>
-
-                    <div className="flex items-center gap-1 mt-1">
-                      <span className="text-xs text-gray-400">
-                        {new Date(msg.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                      {msg.senderId === userData?._id && (
-                        <span className="text-gray-400">
-                          {msg.status === "sent" && <CheckCheck size={12} />}
-                          {msg.status === "delivered" && (
-                            <CheckCheck size={12} />
-                          )}
-                          {msg.status === "read" && (
-                            <CheckCheck size={12} className="text-blue-500" />
-                          )}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+              {readMessages.map((msg, index) =>
+                renderMessage(msg, index, readMessages)
+              )}
+              {unreadMessages.length > 0 && (
+                <div className="flex items-center justify-center my-2">
+                  <div className="flex-1 h-px bg-blue-200"></div>
+                  <span className="mx-2 px-3 py-1 bg-blue-100 text-blue-600 text-xs font-medium rounded-full">
+                    New Messages
+                  </span>
+                  <div className="flex-1 h-px bg-blue-200"></div>
+                </div>
+              )}
+              {unreadMessages.map((msg, index) =>
+                renderMessage(msg, index, unreadMessages)
+              )}
+              <div ref={messagesEndRef} />
             </div>
 
-            {/* Message Input */}
             <div className="p-4 bg-white border-t border-gray-200">
               <div className="flex items-end gap-2">
                 <div className="flex-1 bg-gray-50 rounded-2xl p-2">
                   <div className="flex items-center gap-2 mb-2">
-                    <button className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        e.target.files?.[0] &&
+                        handleFileUpload(e.target.files[0])
+                      }
+                      hidden
+                      id="image-upload"
+                    />
+                    <label
+                      htmlFor="image-upload"
+                      className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors cursor-pointer"
+                    >
                       <ImageIcon size={20} />
-                    </button>
-                    <button className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors">
+                    </label>
+                    <input
+                      type="file"
+                      onChange={(e) =>
+                        e.target.files?.[0] &&
+                        handleFileUpload(e.target.files[0])
+                      }
+                      hidden
+                      id="file-upload"
+                    />
+                    <label
+                      htmlFor="file-upload"
+                      className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors cursor-pointer"
+                    >
                       <Paperclip size={20} />
-                    </button>
+                    </label>
+                    {fileUploading && (
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Loader2 className="animate-spin mr-2" size={16} />
+                        Uploading...
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-end gap-2">
                     <textarea
@@ -441,7 +742,9 @@ export const MessagesPage: React.FC<ChatProps> = ({
                 </div>
                 <button
                   onClick={handleSendMessage}
-                  disabled={!messageInput.trim() || isSending}
+                  disabled={
+                    (!messageInput.trim() && !fileUploading) || isSending
+                  }
                   className="p-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSending ? (

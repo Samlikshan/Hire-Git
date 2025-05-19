@@ -14,6 +14,7 @@ declare global {
     }
   }
 }
+
 export const verifyToken = () => {
   return async (
     req: Request,

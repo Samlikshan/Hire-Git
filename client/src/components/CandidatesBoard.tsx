@@ -1,4 +1,3 @@
-// CandidatesBoard.tsx
 import React, { useEffect, useState } from "react";
 import { DndProvider, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -13,19 +12,19 @@ import {
   SlidersHorizontal,
   X,
   Briefcase,
-  MapPin,
   Phone,
   Award,
-  Book,
   Linkedin,
   Github,
   Globe,
 } from "lucide-react";
 import {
   getJobApplicantsService,
+  scheduleInterviewService,
   shortListCandidateService,
 } from "@/services/job";
 import { useParams } from "react-router-dom";
+import ScheduleInterview from "./ui/scheduleInterview";
 
 interface Applicant {
   _id: string;
@@ -75,11 +74,19 @@ const Column: React.FC<{
     status: "applied" | "shortlisted" | "hired" | "rejected"
   ) => void;
   onCardClick: (applicant: Applicant) => void;
+  onScheduleInterview: (applicationId: string) => void;
   showActionTooltip: { id: string; action: string } | null;
-}> = ({ column, applicants, onDrop, onCardClick, showActionTooltip }) => {
+}> = ({
+  column,
+  applicants,
+  onDrop,
+  onCardClick,
+  onScheduleInterview,
+  showActionTooltip,
+}) => {
   const [{ isOver }, drop] = useDrop({
     accept: "candidate",
-    drop: (item: any) => {
+    drop: (item: { status: string; id: string }) => {
       if (item.status !== column.id) {
         onDrop(item.id, column.id);
       }
@@ -119,6 +126,7 @@ const Column: React.FC<{
                 applicant={applicant}
                 onClick={() => onCardClick(applicant)}
                 onStatusChange={(status) => onDrop(applicant._id, status)}
+                onScheduleInterview={() => onScheduleInterview(applicant._id)}
               />
               {showActionTooltip && showActionTooltip.id === applicant._id && (
                 <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-100 text-white text-xs py-1 px-2 rounded whitespace-nowrap z-10">
@@ -210,7 +218,10 @@ const CandidatesBoard: React.FC = () => {
   } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSkills, setFilterSkills] = useState<string[]>([]);
-
+  const [showScheduleInterview, setShowScheduleInterview] = useState(false);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<
+    string | null
+  >(null);
   useEffect(() => {
     const getCandidates = async () => {
       if (!jobId) return;
@@ -310,12 +321,32 @@ const CandidatesBoard: React.FC = () => {
     setShowSkillsChart(true);
   };
 
+  const handleScheduleInterview = (applicationId: string) => {
+    setSelectedApplicationId(applicationId);
+    setShowScheduleInterview(true);
+  };
+
+  const scheduleInterview = async (data: {
+    date: string;
+    time: string;
+    duration: string;
+    timeZone: string;
+    round: string;
+    notes: string;
+  }) => {
+    if (!selectedApplicationId) return;
+    const response = await scheduleInterviewService({
+      applicationId: selectedApplicationId,
+      ...data,
+    });
+    console.log(response);
+  };
   const filteredCandidates = applicants.filter((applicant) => {
     const matchesSearch =
-      applicant.candidate.name
+      applicant?.candidate?.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      applicant.candidate.email
+      applicant?.candidate?.email
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
 
@@ -404,6 +435,7 @@ const CandidatesBoard: React.FC = () => {
                 onDrop={moveCandidate}
                 onCardClick={handleCandidateClick}
                 showActionTooltip={showActionTooltip}
+                onScheduleInterview={handleScheduleInterview}
               />
             ))}
           </div>
@@ -603,13 +635,15 @@ const CandidatesBoard: React.FC = () => {
         </div>
       )}
 
-      {/* {showScheduleInterview && (
+      {showScheduleInterview && (
         <ScheduleInterview
           onClose={() => setShowScheduleInterview(false)}
-          onSchedule={hanldeShortlist}
+          onSchedule={(data) => {
+            scheduleInterview(data);
+            setShowScheduleInterview(false);
+          }}
         />
-      )} */}
-
+      )}
       {showActionModal && pendingAction && (
         <div className="fixed inset-0  bg-black/[var(--bg-opacity)] [--bg-opacity:50%] flex items-center justify-center z-20">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">

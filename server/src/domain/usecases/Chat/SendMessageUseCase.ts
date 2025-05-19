@@ -16,7 +16,8 @@ export class SendMessageUseCase {
     senderType: "company" | "candidate",
     senderId: string,
     content: string,
-    receiverId: string
+    receiverId: string,
+    type: "text" | "file" | "image"
   ): Promise<Message> {
     const message = await this.messageRepository.create({
       chatId,
@@ -24,6 +25,7 @@ export class SendMessageUseCase {
       senderId,
       content,
       status: "sent",
+      type,
     });
 
     await this.chatRepository.updateLastMessage(chatId, message);

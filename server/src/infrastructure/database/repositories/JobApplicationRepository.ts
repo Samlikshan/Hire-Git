@@ -3,6 +3,8 @@ import { Job } from "../../../domain/entities/Job";
 import { JobApplication } from "../../../domain/entities/JobApplication";
 import { IJobApplicationRepository } from "../../../domain/repositories/IJobApplicatonRepository";
 import { JobApplicationModel } from "../models/jobApplicationModel";
+import { JobModel } from "../models/jobModel";
+import { ApplicantsPerJob } from "../../../domain/entities/Dashboard";
 
 export class JobApplicationRepository implements IJobApplicationRepository {
   async createJobApplication(
@@ -71,5 +73,43 @@ export class JobApplicationRepository implements IJobApplicationRepository {
       { _id: applicationId },
       { $set: { status: "scheduled" } }
     );
+  }
+  async countTotalApplicants(companyId: string): Promise<number> {
+    const jobIds = await JobModel.find({ company: companyId }).distinct("_id");
+    return JobApplicationModel.countDocuments({ job: { $in: jobIds } });
+  }
+  
+  async getApplicantsPerJob(companyId: string, status: "all" | "active") {
+    const jobs = await JobModel.find({
+      company: companyId,
+      ...(status === "active" && { status: "active" }),
+    });
+
+    return JobModel.aggregate([
+      {
+        $match: {
+          _id: { $in: jobs.map((j) => j._id) },
+        },
+      },
+      {
+        $lookup: {
+          from: "applications",
+          localField: "_id",
+          foreignField: "job",
+          as: "applications",
+        },
+      },
+      {
+        $project: {
+          jobId: "$_id",
+          title: 1,
+          status: 1,
+          applicants: { $size: "$applications" },
+        },
+      },
+      {
+        $sort: { applicants: -1 },
+      },
+    ]);
   }
 }

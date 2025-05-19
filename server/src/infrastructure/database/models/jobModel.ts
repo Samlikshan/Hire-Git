@@ -28,5 +28,13 @@ const jobSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
+jobSchema.index(
+  {
+    title: "text",
+    department: "text",
+    location: "text",
+    tags: "text",
+  },
+  { name: "jobs_text_index" }
+);
 export const JobModel = mongoose.model<Job>("Jobs", jobSchema);

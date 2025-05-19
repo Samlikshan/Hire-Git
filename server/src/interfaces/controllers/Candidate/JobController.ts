@@ -19,7 +19,7 @@ export class JobController {
     this.jobRepository
   );
   private saveJobUseCase = new SaveJobUseCase(this.jobRepository);
-  private getSavedJobsUseCase = new GetSavedJobsUseCase(this.jobRepository)
+  private getSavedJobsUseCase = new GetSavedJobsUseCase(this.jobRepository);
   listJobs = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
@@ -38,19 +38,22 @@ export class JobController {
         (Array.isArray(arr) ? arr : [arr]).filter(
           (item: string) => item !== "" && item !== undefined
         );
-      const userId = req.user?.id
-      const response = await this.listJobsUseCase.execute({
-        page: Number(page),
-        limit: Number(limit),
-        search: search.toString(),
-        filters: {
-          types: cleanArray(types),
-          departments: cleanArray(departments),
-          locations: cleanArray(locations),
-          experience: cleanArray(experience),
-          tags: cleanArray(tags),
-        }
-      }, userId!);
+      const userId = req.user?.id;
+      const response = await this.listJobsUseCase.execute(
+        {
+          page: Number(page),
+          limit: Number(limit),
+          search: search.toString(),
+          filters: {
+            types: cleanArray(types),
+            departments: cleanArray(departments),
+            locations: cleanArray(locations),
+            experience: cleanArray(experience),
+            tags: cleanArray(tags),
+          },
+        },
+        userId!
+      );
 
       res.status(HttpStatus.OK).json({
         message: response.message,
@@ -91,23 +94,32 @@ export class JobController {
 
   saveJob = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { jobId } = req.params
-      const userId = req.user?.id
-      const response = await this.saveJobUseCase.execute(userId!, jobId)
-      res.json({ message: response.message })
+      const { jobId } = req.params;
+      const userId = req.user?.id;
+      const response = await this.saveJobUseCase.execute(userId!, jobId);
+      res.json({ message: response.message });
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 
   getSavedJobs = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user?.id
-      const savedJobs = await this.getSavedJobsUseCase.execute(userId!)
-      res.json({ message: "Saved jobs fetched successfully", savedJobs: savedJobs })
+      const userId = req.user?.id;
+      const savedJobs = await this.getSavedJobsUseCase.execute(userId!);
+      res.json({
+        message: "Saved jobs fetched successfully",
+        savedJobs: savedJobs,
+      });
     } catch (error) {
-      next(error)
+      next(error);
     }
+  };
 
-  }
+  acceptJobOffer = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+    } catch (error) {
+      next(error);
+    }
+  };
 }

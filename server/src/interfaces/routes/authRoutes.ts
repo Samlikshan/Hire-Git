@@ -1,6 +1,13 @@
 import express from "express";
 import { AuthController } from "../controllers/authController";
 import { FileUpload } from "../../utils/multerService";
+import { validate } from "../middlewares/validate";
+import {
+  createCandidateSchema,
+  createCompanySchema,
+  loginSchema,
+  resetPasswordSchema,
+} from "../validators/authValidators";
 
 const router = express.Router();
 const authController = new AuthController();
@@ -14,15 +21,25 @@ const uploadOptions = {
 const fileUpload = new FileUpload(uploadOptions);
 
 //admin
-router.post("/admin/login", authController.loginAdmin);
+router.post("/admin/login", validate(loginSchema), authController.loginAdmin);
 
 //candidate
-router.post("/register/candidate", authController.registerCandidate);
+router.post(
+  "/register/candidate",
+  validate(createCandidateSchema),
+  authController.registerCandidate
+);
 router.post("/verify-email/candidate", authController.verifyCandidate);
-router.post("/login/candidate", authController.loginCandidate);
+router.post(
+  "/login/candidate",
+  validate(loginSchema),
+  authController.loginCandidate
+);
 router.post("/google-auth", authController.loginWithGoogle);
+
 router.post(
   "/generate-reset-password",
+  validate(resetPasswordSchema),
   authController.sendResetPasswordLinkCandidate
 );
 router.post("/reset-password/candidate", authController.resetPasswordCandidate);
@@ -30,12 +47,17 @@ router.post("/reset-password/candidate", authController.resetPasswordCandidate);
 //company
 router.post(
   "/register/company",
+  // validate(createCompanySchema),
   fileUpload.uploadFile("registrationDocument"),
   authController.registerCompany
 );
 
 router.post("/verify/company", authController.verifyCompany);
-router.post("/login/company", authController.loginCompany);
+router.post(
+  "/login/company",
+  validate(loginSchema),
+  authController.loginCompany
+);
 router.post(
   "/company/generate-reset-password",
   authController.sendResendPasswordCompany

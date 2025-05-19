@@ -7,4 +7,6 @@ export interface IMessageRepository {
     messageId: string,
     status: "delivered" | "read"
   ): Promise<Message | null>;
+  markMessagesAsRead(chatId: string, userId: string): Promise<void>;
+  getUnreadMessages(chatId: string, userId: string): Promise<Message[]>;
 }

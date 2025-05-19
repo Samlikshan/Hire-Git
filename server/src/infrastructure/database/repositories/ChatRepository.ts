@@ -2,6 +2,7 @@ import { Chat } from "../../../domain/entities/Chat";
 import { Message } from "../../../domain/entities/Message";
 import { IChatRepository } from "../../../domain/repositories/IChatRepository";
 import { chatModel } from "../models/chatModel";
+import { messageModel } from "../models/messageModel";
 
 export class ChatRepository implements IChatRepository {
   async create(chat: Omit<Chat, "_id">): Promise<Chat> {
@@ -39,5 +40,12 @@ export class ChatRepository implements IChatRepository {
       { $set: { lastMessage: message, updatedAt: new Date() } },
       { new: true }
     );
+  }
+  async getUnreadMessageCount(chatId: string, userId: string): Promise<number> {
+    return messageModel.countDocuments({
+      chatId,
+      senderId: { $ne: userId },
+      status: { $in: ["sent", "delivered"] },
+    });
   }
 }

@@ -32,15 +32,18 @@ import Home from "./components/pages/CandidateHomePage";
 import Profile, { ProfileContent } from "./components/pages/Profile";
 import { NotificationPage } from "./components/Notificatoins";
 import { MessagesPage } from "./components/pages/MessaagesPage";
+import AppliedJobsPage from "./components/pages/JobApplications";
 import NotFound from "./components/pages/NotFound";
 import { SavedJobs } from "./components/pages/SavedJobs";
+import InterviewPage from "./components/pages/InterviewPage";
+import Evaluation from "./components/ui/evaluation";
 import SubscriptionPage from "./components/pages/SubscriptionPage";
 import UserSubscriptionPage from "./components/pages/UserSubscriptionPage";
 import SuccessPage from "./components/pages/SuccessPage";
 import "./styles/animation.css";
 import SubscriptionPlan from "./components/ui/SubscriptionPlan";
 import DashboardPage from "./components/ui/SubscriptionDashboard";
-
+import DashboardOverview from "./components/ui/DashboardOverview";
 
 function App() {
   return (
@@ -101,6 +104,7 @@ function App() {
           <Route element={<CompanyRoutes />}>
             <Route path="/subscriptions" element={<UserSubscriptionPage />} />
             <Route path="/company" element={<Company />}>
+              <Route path="dashboard" element={<DashboardOverview />} />
               <Route path="profile" element={<CompanyProfile />} />
               <Route path="jobs" element={<JobsPage />} />
               <Route path="job/:jobId" element={<JobDetailsCompany />} />
@@ -109,6 +113,7 @@ function App() {
                 element={<MessagesPage userType="company" />}
               />
               <Route path="subscriptions" element={<SubscriptionPlan />} />
+              <Route path="evaluation" element={<Evaluation />} />
             </Route>
           </Route>
 
@@ -118,6 +123,7 @@ function App() {
             <Route path="/profile" element={<Profile />}>
               <Route index element={<ProfileContent />} />
               <Route path="notifications" element={<NotificationPage />} />
+              <Route path="jobs" element={<AppliedJobsPage />} />
               <Route
                 path="messages"
                 element={<MessagesPage userType="candidate" />}
@@ -128,6 +134,7 @@ function App() {
 
           <Route path="*" element={<NotFound />} />
 
+          <Route path="/interview/:roomId" element={<InterviewPage />} />
         </Routes>
       </GoogleOAuthProvider>
     </>

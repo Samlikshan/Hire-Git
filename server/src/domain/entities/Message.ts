@@ -7,6 +7,7 @@ export class Message {
     public senderId: string,
     public content: string,
     public status: "sent" | "delivered" | "read" = "sent",
+    public type: "text" | "image" | "file",
     public createdAt?: Date,
     public updatedAt?: Date
   ) {}

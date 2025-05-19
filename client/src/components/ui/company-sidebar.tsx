@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   UserPlus,
   Mail,
+  SubtitlesIcon,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/reducers/userSlice";
@@ -101,11 +102,14 @@ export default function CompanySidebar() {
           <NavItem to="/company/jobs" icon={UserPlus}>
             Recruitment
           </NavItem>
-          <NavItem to="/company/schedule" icon={Calendar}>
+          {/* <NavItem to="/company/schedule" icon={Calendar}>
             Schedule
-          </NavItem>
+          </NavItem> */}
           <NavItem to="/company/messages" icon={Mail}>
             Messages
+          </NavItem>
+          <NavItem to="/company/subscriptions" icon={SubtitlesIcon}>
+            My Subscription
           </NavItem>
         </div>
       </div>

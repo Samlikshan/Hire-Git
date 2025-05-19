@@ -16,7 +16,7 @@ export interface Job {
   status: "active" | "draft" | "closed";
   createdAt: Date;
   tags: string[];
-  isSaved?: boolean
+  isSaved?: boolean;
 }
 
 export type JobFilter = {
@@ -37,7 +37,7 @@ export interface CandidateJob extends Job {
 }
 
 export interface Notification {
-  id: string;
+  _id: string;
   type: "message" | "job" | "interview" | "reminder";
   title: string;
   company: {
@@ -57,4 +57,6 @@ export interface Notification {
   };
   companyName?: string;
   roleName?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }

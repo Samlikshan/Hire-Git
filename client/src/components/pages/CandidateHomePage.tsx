@@ -481,39 +481,39 @@ export default function Home() {
                       <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
                         <img
                           src={`${import.meta.env.VITE_S3_PATH}/${
-                            job.company.logo
+                            job?.company?.logo
                           }`}
-                          alt={job.company.name}
+                          alt={job?.company?.name}
                           className="w-full h-full object-cover"
                         />
                       </div>
                       <div>
                         <h3 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                          {job.title}
+                          {job?.title}
                         </h3>
-                        <p className="text-gray-600">{job.company.name}</p>
+                        <p className="text-gray-600">{job?.company?.name}</p>
                       </div>
                     </div>
 
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-gray-600">
                         <MapPin size={16} className="mr-2 text-gray-400" />
-                        {job.location}
+                        {job?.location}
                       </div>
                       <div className="flex items-center text-gray-600">
                         <Briefcase size={16} className="mr-2 text-gray-400" />
-                        {job.type}
+                        {job?.type}
                       </div>
                       <div className="flex items-center text-gray-600">
                         <DollarSign size={16} className="mr-2 text-gray-400" />
-                        {job.salary}
+                        {job?.salary}
                       </div>
                     </div>
                   </div>
                   <div className="p-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
                     <span className="text-sm text-gray-500">
                       <Clock size={14} className="inline-block mr-1" />
-                      {getTimeAgo(job.createdAt)}
+                      {getTimeAgo(job?.createdAt)}
                     </span>
                     <div className="flex gap-2">
                       <Button
@@ -527,7 +527,7 @@ export default function Home() {
                         /> */}
                       </Button>
                       <Button
-                        onClick={() => navigate(`/jobs/${job._id}`)}
+                        onClick={() => navigate(`/jobs/${job?._id}`)}
                         size="sm"
                       >
                         View Details

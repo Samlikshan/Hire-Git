@@ -5,6 +5,7 @@ export interface Chat {
   jobId: string | { title: string };
   lastMessage?: Message;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface Message {
@@ -14,5 +15,6 @@ export interface Message {
   senderId: string;
   content: string;
   status: "sent" | "delivered" | "read";
+  type: "text" | "image" | "file";
   createdAt: string;
 }

@@ -18,6 +18,11 @@ const messageSchema = new Schema(
       enum: ["sent", "delivered", "read"],
       default: "sent",
     },
+    type: {
+      type: String,
+      enum: ["text", "image", "file"],
+      default: "text",
+    },
   },
   {
     timestamps: true, // Auto-add createdAt and updatedAt

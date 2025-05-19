@@ -106,7 +106,7 @@ export function JobCard({ job, index }: JobCardProps) {
       </div>
 
       {/* Job Card Footer */}
-      <div className="p-3 bg-gray-50 flex justify-between items-center">
+      <div className="p-3 bg-gray-50 flex justify-between items-center bottom-0">
         <div className="flex gap-2">
           <Button variant="outline" size="sm">
             Edit

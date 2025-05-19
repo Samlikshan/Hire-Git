@@ -65,7 +65,6 @@ export class CompanyRepository implements ICompanyRepository {
     twitter: string,
     about: string
   ): Promise<UpdateWriteOpResult> {
-    console.log(id, "from repository", logo, linkedIn, twitter);
     return await CompanyModel.updateOne(
       { _id: id },
       {

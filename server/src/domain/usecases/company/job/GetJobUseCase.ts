@@ -4,18 +4,18 @@ import { HttpStatus } from "../../../enums/http-status.enum";
 import { IJobRepository } from "../../../repositories/IJobRepository";
 
 export class GetJobUseCase {
-  constructor(private jobReopository: IJobRepository) { }
+  constructor(private jobReopository: IJobRepository) {}
   async execute(jobId: string, userId: string, role: string) {
     let job = await this.jobReopository.findById(jobId);
-    if (role == 'candidate') {
-      const response = await this.jobReopository.getSavedJobs(userId)
-      const savedJobsIds = new Set()
-      response?.savedJobs.map((job) => {
-        savedJobsIds.add(job._id?.toString())
-      })
+    if (role == "candidate") {
+      const response = await this.jobReopository.getSavedJobs(userId);
+      const savedJobsIds = new Set();
+      response?.savedJobs?.map((job) => {
+        savedJobsIds.add(job._id?.toString());
+      });
       if (savedJobsIds.has(jobId)) {
-        const updatedJob = { ...job, isSaved: true } as Job
-        job = updatedJob
+        const updatedJob = { ...job, isSaved: true } as Job;
+        job = updatedJob;
       }
     }
     if (!job) {

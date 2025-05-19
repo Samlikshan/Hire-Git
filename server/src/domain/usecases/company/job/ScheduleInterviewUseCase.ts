@@ -28,7 +28,6 @@ export class ScheduleInterviewUseCase {
     const application = await this.jobApplicationRepository.getApplication(
       applicationId
     );
-
     if (!application) {
       throw new HttpException("Application not found", HttpStatus.NOT_FOUND);
     }
@@ -38,6 +37,7 @@ export class ScheduleInterviewUseCase {
 
     const schedule = await this.interviewRepository.schedule(
       applicationId,
+      application.job as string,
       scheduledAt,
       time,
       duration,
@@ -50,7 +50,7 @@ export class ScheduleInterviewUseCase {
 
     if (!schedule) {
       throw new HttpException(
-        "Scheduling interview falied",
+        "Scheduling interview failed",
         HttpStatus.BAD_REQUEST
       );
     }
@@ -58,10 +58,9 @@ export class ScheduleInterviewUseCase {
     const response = await this.jobApplicationRepository.schedule(
       applicationId
     );
-
     if (!response.modifiedCount) {
       throw new HttpException(
-        "Scheduling interview falied",
+        "Scheduling interview failed",
         HttpStatus.BAD_REQUEST
       );
     }
@@ -73,12 +72,12 @@ export class ScheduleInterviewUseCase {
         (application.job as Job).title
       } at ${
         ((application?.job as Job).company as Company).name
-      } has been scheduled. Please check the interview details and be prepared.`,
+      } has been scheduled.`,
       read: false,
       job: (application.job as Job)._id!,
       candidate: application.candidate,
       action: {
-        type: "view",
+        type: "join",
         label: "Join Interview",
         url: meetingLink,
       },

@@ -7,12 +7,17 @@ import { NotificationService } from "../../../infrastructure/services/Notificati
 import { ChatRepository } from "../../../infrastructure/database/repositories/ChatRepository";
 import { MessageService } from "../../../infrastructure/services/MessageService";
 import { CreateChatUseCase } from "../../../domain/usecases/Chat/CreateChatUseCase";
+import { ScheduleInterviewUseCase } from "../../../domain/usecases/company/job/ScheduleInterviewUseCase";
+import { InterviewRepository } from "../../../infrastructure/database/repositories/InterviewRepository";
 
 export class JobApplicationController {
   private jobApplicationRepository = new JobApplicationRepository();
   private notificatoinRepository = new NotificationRepository();
   private notificationService = new NotificationService();
   private messageService = new MessageService();
+  private interviewRepository = new InterviewRepository();
+
+  //useCase
   private listApplicantsUseCase = new ListApplicantsUseCase(
     this.jobApplicationRepository
   );
@@ -28,6 +33,13 @@ export class JobApplicationController {
     this.messageService,
     this.createChatUseCase
   );
+  private scheduleInterviewUseCase = new ScheduleInterviewUseCase(
+    this.jobApplicationRepository,
+    this.interviewRepository,
+    this.notificatoinRepository,
+    this.notificationService
+  );
+
   listApplicants = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { jobId } = req.params;
@@ -50,6 +62,30 @@ export class JobApplicationController {
         applicationId
       );
 
+      res.json({ message: response?.message });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  scheduleInterview = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { applicationId, date, time, duration, timeZone, round, notes } =
+        req.body;
+
+      const response = await this.scheduleInterviewUseCase.execute(
+        applicationId,
+        date,
+        time,
+        duration,
+        timeZone,
+        round,
+        notes
+      );
       res.json({ message: response?.message });
     } catch (error) {
       next(error);

@@ -5,19 +5,19 @@ import {
   MessageSquare,
   Briefcase,
   Calendar,
-  Clock,
-  // CheckCircle,
-  // Filter,
-  // Search,
-  // Video,
-  // ExternalLink,
+  ExternalLink,
+  Video,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/reducers/rootReducer";
 import { io } from "socket.io-client";
-
-import { getNotificationsService } from "@/services/notification";
+import {
+  getNotificationsService,
+  markAsReadService,
+  markAllAsReadService,
+} from "@/services/notification";
 import { Notification } from "@/types/job";
+
 interface NotificationFilter {
   id: string;
   label: string;
@@ -50,71 +50,64 @@ const filters: NotificationFilter[] = [
     icon: <Calendar size={18} />,
     color: "bg-purple-500",
   },
-  {
-    id: "reminder",
-    label: "Reminders",
-    icon: <Clock size={18} />,
-    color: "bg-orange-500",
-  },
 ];
 
-// const ActionButton: React.FC<{ type: string; label: string; url: string }> = ({
-//   type,
-//   label,
-//   url,
-// }) => {
-//   const baseClasses =
-//     "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors";
+const ActionButton: React.FC<{ type: string; label: string; url: string }> = ({
+  type,
+  label,
+  url,
+}) => {
+  const baseClasses =
+    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors";
 
-//   switch (type) {
-//     case "join":
-//       return (
-//         <a
-//           href={url}
-//           className={`${baseClasses} bg-purple-100 text-purple-700 hover:bg-purple-200`}
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           <Video size={16} />
-//           {label}
-//         </a>
-//       );
-//     case "view":
-//       return (
-//         <a
-//           href={url}
-//           className={`${baseClasses} bg-blue-50 text-blue-700 hover:bg-blue-100`}
-//         >
-//           <ExternalLink size={16} />
-//           {label}
-//         </a>
-//       );
-//     case "reply":
-//       return (
-//         <a
-//           href={url}
-//           className={`${baseClasses} bg-green-50 text-green-700 hover:bg-green-100`}
-//         >
-//           <MessageSquare size={16} />
-//           {label}
-//         </a>
-//       );
-//     default:
-//       return null;
-//   }
-// };
+  switch (type) {
+    case "join":
+      return (
+        <a
+          href={url}
+          className={`${baseClasses} bg-purple-100 text-purple-700 hover:bg-purple-200`}
+          rel="noopener noreferrer"
+        >
+          <Video size={16} />
+          {label}
+        </a>
+      );
+    case "view":
+      return (
+        <a
+          href={url}
+          className={`${baseClasses} bg-blue-50 text-blue-700 hover:bg-blue-100`}
+        >
+          <ExternalLink size={16} />
+          {label}
+        </a>
+      );
+    case "reply":
+      return (
+        <a
+          href={url}
+          className={`${baseClasses} bg-green-50 text-green-700 hover:bg-green-100`}
+        >
+          <MessageSquare size={16} />
+          {label}
+        </a>
+      );
+    default:
+      return null;
+  }
+};
 
 export const NotificationPage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state);
   const [activeFilter, setActiveFilter] = useState("all");
-  const [notifications, setNotifications] = useState<Notification[] | []>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
   const notificationCounts = useMemo(() => {
     const counts = {
       all: notifications.length,
       message: 0,
       job: 0,
       interview: 0,
-      reminder: 0,
     };
 
     notifications.forEach((notification) => {
@@ -128,70 +121,60 @@ export const NotificationPage: React.FC = () => {
         case "interview":
           counts.interview += 1;
           break;
-        case "reminder":
-          counts.reminder += 1;
-          break;
       }
     });
 
     return counts;
   }, [notifications]);
 
-  //   const [searchQuery, setSearchQuery] = useState("");
-  // const [socket, setSocket] = useState(null);
-  // const [connected, setConnected] = useState(false);
-  useEffect(() => {
-    if (!user.userData?._id) {
-      console.log("No user ID available, not connecting socket");
-      return;
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => !n.read).length,
+    [notifications]
+  );
+
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await markAsReadService(notificationId);
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === notificationId ? { ...n, read: true } : n))
+      );
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
     }
+  };
 
-    console.log("Setting up socket with user ID:", user.userData?._id);
+  const handleMarkAllAsRead = async () => {
+    if (!user.userData?._id) return;
+    try {
+      await markAllAsReadService(user.userData._id);
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+    }
+  };
 
-    // Initialize socket connection
+  useEffect(() => {
+    if (!user.userData?._id) return;
+
     const socketInstance = io("http://localhost:3000", {
       withCredentials: true,
       transports: ["websocket", "polling"],
     });
 
-    // Socket event handlers
     socketInstance.on("connect", () => {
-      console.log(
-        "Socket connected successfully! Socket ID:",
-        socketInstance.id
-      );
-      // setConnected(true);
-
-      // Send user ID after successful connection
       socketInstance.emit("identify", user.userData?._id);
-      console.log("Sent identify event with user ID:", user.userData?._id);
     });
 
-    socketInstance.on("connect_error", (error) => {
-      console.error("Socket connection error:", error);
-      // setConnected(false);
-    });
-
-    // Listen specifically for the "notification" event
-    socketInstance.on("notification", (data) => {
-      console.log("📣 Notification received:", data);
+    socketInstance.on("notification", (data: Notification) => {
       setNotifications((prev) => [data, ...prev]);
-      // You could also show a toast notification here
     });
 
-    socketInstance.on("disconnect", () => {
-      console.log("Socket disconnected");
-      // setConnected(false);
-    });
-
-    // setSocket(socketInstance);
-
-    // Fetch existing notifications on load
     const fetchNotifications = async () => {
+      if (!user || !user.userData) {
+        return;
+      }
       try {
-        if (!user.userData?._id) return;
-        const response = await getNotificationsService(user.userData?._id);
-
+        const response = await getNotificationsService(user?.userData?._id);
         if (response.data?.notifications) {
           setNotifications(response.data.notifications);
         }
@@ -202,14 +185,11 @@ export const NotificationPage: React.FC = () => {
 
     fetchNotifications();
 
-    // Cleanup on unmount
     return () => {
-      console.log("Cleaning up socket connection");
-      if (socketInstance) {
-        socketInstance.disconnect();
-      }
+      socketInstance.disconnect();
     };
   }, [user.userData?._id]);
+
   const filteredNotifications = notifications.filter(
     (notification) =>
       activeFilter === "all" || notification.type === activeFilter
@@ -217,20 +197,26 @@ export const NotificationPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          {/* Header */}
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl font-semibold text-gray-900">
-                Notifications
+                Notifications {unreadCount > 0 && `(${unreadCount} new)`}
               </h1>
-              <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              <button
+                onClick={handleMarkAllAsRead}
+                className={`text-sm ${
+                  unreadCount > 0
+                    ? "text-blue-600 hover:text-blue-700"
+                    : "text-gray-400 cursor-not-allowed"
+                }`}
+                disabled={unreadCount === 0}
+              >
                 Mark all as read
               </button>
             </div>
 
-            {/* Tabs */}
             <div className="flex overflow-x-auto pb-2 w-full scrollbar-hide">
               <div className="flex gap-2">
                 {filters.map((filter) => (
@@ -270,92 +256,93 @@ export const NotificationPage: React.FC = () => {
                 ))}
               </div>
             </div>
-
-            {/* Search */}
-            {/* <div className="flex items-center gap-4 mt-4">
-              <div className="flex-1 relative">
-                <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                  size={20}
-                />
-                <input
-                  type="text"
-                  placeholder="Search notifications..."
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <button className="p-2.5 text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <Filter size={20} />
-              </button>
-            </div> */}
           </div>
 
-          {/* Notifications List */}
           <div className="divide-y divide-gray-100">
             {filteredNotifications.map((notification) => (
               <motion.div
-                key={notification.id}
+                key={notification._id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`p-6 hover:bg-gray-50 transition-colors ${
-                  !notification.read ? "bg-blue-50/40" : ""
+                className={`p-6 transition-colors ${
+                  !notification.read
+                    ? "bg-blue-50/40 hover:bg-blue-50/60"
+                    : "hover:bg-gray-50"
                 }`}
               >
                 <div className="flex items-start gap-4">
-                  <div
-                    className={`p-2 rounded-full ${
-                      filters.find((f) => f.id === notification.type)?.color ||
-                      "bg-gray-500"
-                    }`}
-                  >
-                    {filters.find((f) => f.id === notification.type)?.icon}
+                  <div className="relative">
+                    <div
+                      className={`p-2 rounded-full ${
+                        filters.find((f) => f.id === notification.type)
+                          ?.color || "bg-gray-500"
+                      }`}
+                    >
+                      {filters.find((f) => f.id === notification.type)?.icon}
+                    </div>
+                    {!notification.read && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white" />
+                    )}
                   </div>
-                  <div className="flex-1">
+
+                  <div className="flex-1 w-0">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-base font-medium text-gray-900">
+                        <h3
+                          className={`text-base ${
+                            !notification.read
+                              ? "font-semibold text-gray-900"
+                              : "font-medium text-gray-700"
+                          }`}
+                        >
                           {notification.title}
                         </h3>
-                        {(notification.company || notification.job.title) && (
-                          <p className="text-sm text-gray-500 mt-0.5">
-                            {notification.company?.name}{" "}
-                            {notification.job.title &&
-                              `• ${notification.job.title}`}
+                        {notification.job?.title && (
+                          <p className="text-sm text-gray-500 mt-1">
+                            {notification.job.title}
                           </p>
                         )}
                       </div>
-                      <span className="text-xs text-gray-500 whitespace-nowrap">
-                        {notification.time}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 whitespace-nowrap">
+                          {new Date(
+                            notification.createdAt
+                          ).toLocaleDateString()}
+                        </span>
+                        {!notification.read && (
+                          <button
+                            onClick={() => handleMarkAsRead(notification._id)}
+                            className="text-xs text-blue-600 hover:text-blue-700"
+                          >
+                            Mark read
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p
+                      className={`mt-2 text-sm ${
+                        !notification.read ? "text-gray-800" : "text-gray-600"
+                      }`}
+                    >
                       {notification.message}
                     </p>
 
-                    <div className="mt-4 flex items-center justify-between">
-                      {/* {notification.action && (
+                    {notification.action && (
+                      <div className="mt-4">
                         <ActionButton {...notification.action} />
-                      )} */}
-                      <div className="flex items-center gap-3">
-                        {/* {!notification.read ? (
-                          <button className="text-xs text-blue-600 hover:text-blue-700 font-medium">
-                            Mark as read
-                          </button>
-                        ) : (
-                          <span className="text-xs text-gray-500 flex items-center gap-1">
-                            <CheckCircle size={14} />
-                            Read
-                          </span>
-                        )} */}
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
             ))}
           </div>
+
+          {filteredNotifications.length === 0 && (
+            <div className="p-8 text-center text-gray-500">
+              No notifications found
+            </div>
+          )}
         </div>
       </div>
     </div>

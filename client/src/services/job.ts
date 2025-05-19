@@ -1,10 +1,40 @@
+
 import { CandidateJob, Job } from "@/types/job";
 import axiosInstance from "./axiosInstance";
+// Updated job service
+export const listCompanyJobsService = async (
+  companyId: string,
+  page: number,
+  limit: number,
+  filters: {
+    status?: string;
+    department?: string[];
+    location?: string[];
+    type?: string[];
+    experience?: string[];
+  },
+  search?: string
+) => {
+  const params = {
+    page,
+    limit,
+    status: filters.status,
+    department: filters.department?.join(","),
+    location: filters.location?.join(","),
+    type: filters.type?.join(","),
+    experience: filters.experience?.join(","),
+    search,
+  };
 
-export const listCompanyJobsService = async (companyId: string) => {
-  const response = await axiosInstance.get(`/company/jobs/${companyId}`);
-  return response;
+  const response = await axiosInstance.get(`/company/jobs/${companyId}`, {
+    params,
+  });
+  return response.data;
 };
+// export const listCompanyJobsService = async (companyId: string) => {
+//   const response = await axiosInstance.get(`/company/jobs/${companyId}`);
+//   return response;
+// };
 
 export const createJobPostService = async (jobData: Job) => {
   const response = await axiosInstance.post("/company/job", jobData);
@@ -102,7 +132,7 @@ export const shortListCandidateService = async (applicationId: string) => {
 
 export const getAppliedJobsService = async (candiddateId: string) => {
   const response = await axiosInstance.get(
-    `/candidate/job/applied/${candiddateId}`
+    `/interview/job-history/${candiddateId}`
   );
   return response;
 };

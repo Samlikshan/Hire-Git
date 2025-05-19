@@ -15,7 +15,12 @@ import { logout } from "@/reducers/userSlice";
 import { RootState } from "@/reducers/rootReducer";
 import { useEffect, useState } from "react";
 import { NotificationDropdown } from "./NotificationDropDown";
-import { getNotificationsService } from "@/services/notification";
+import {
+  getUnreadNotificationsService,
+  markAsReadService,
+  markAllAsReadService,
+} from "@/services/notification";
+
 import { io } from "socket.io-client";
 import { Notification } from "@/types/job";
 import { getMessagesService } from "@/services/chat";
@@ -34,6 +39,27 @@ export default function Navbar() {
 
   const handleLogout = () => {
     dispatch(logout());
+  };
+
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await markAsReadService(notificationId);
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === notificationId ? { ...n, read: true } : n))
+      );
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    if (!userData?._id) return;
+    try {
+      await markAllAsReadService(userData._id);
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch (error) {
+      console.error("Failed to mark all notifications as read:", error);
+    }
   };
 
   useEffect(() => {
@@ -104,7 +130,7 @@ export default function Navbar() {
     const fetchNotifications = async () => {
       if (!userData?._id) return;
       try {
-        const response = await getNotificationsService(userData?._id);
+        const response = await getUnreadNotificationsService(userData?._id);
 
         if (response.data?.notifications) {
           setNotifications(response.data.notifications);
@@ -154,6 +180,14 @@ export default function Navbar() {
           >
             Jobs
           </Link>
+          {userData?.role == "company" && (
+            <Link
+              to="/subscriptions"
+              className="text-[15px] font-medium text-gray-700 transition-colors hover:text-gray-900"
+            >
+              Subscriptions
+            </Link>
+          )}
           <Link
             to="/about"
             className="text-[15px] font-medium text-gray-700 transition-colors hover:text-gray-900"
@@ -214,6 +248,8 @@ export default function Navbar() {
                   notifications={notifications}
                   isOpen={showNotifications}
                   onClose={() => setShowNotifications(false)}
+                  onMarkAsRead={handleMarkAsRead}
+                  onMarkAllAsRead={handleMarkAllAsRead}
                 />
               </div>
             </div>

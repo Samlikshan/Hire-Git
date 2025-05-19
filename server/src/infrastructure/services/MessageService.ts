@@ -27,4 +27,20 @@ export class MessageService {
     socketProvider.emitToUser(receiverId.toString(), "new_message", message);
     return true;
   }
+
+  // src/infrastructure/services/MessageService.ts
+  async notifyMessageRead(
+    messageId: string,
+    chatId: string,
+    senderId: string
+  ): Promise<boolean> {
+    const chat = await chatModel.findById(chatId);
+    if (!chat) return false;
+
+    socketProvider.emitToUser(senderId.toString(), "message_read", {
+      messageId,
+      chatId,
+    });
+    return true;
+  }
 }

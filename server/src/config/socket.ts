@@ -2,10 +2,11 @@
 import { Server, Socket } from "socket.io";
 import { parse } from "cookie";
 import jwt from "jsonwebtoken";
-
+import http from "http";
 export class SocketIOProvider {
   private static instance: SocketIOProvider;
   private io: Server | null = null;
+  private onlineUsers = new Map<string, number>(); // Track user connections count
 
   private constructor() {}
 
@@ -16,7 +17,7 @@ export class SocketIOProvider {
     return SocketIOProvider.instance;
   }
 
-  public initialize(server: any): void {
+  public initialize(server: http.Server): void {
     if (this.io) return; // Already initialized
 
     this.io = new Server(server, {
@@ -40,9 +41,11 @@ export class SocketIOProvider {
 
       // Handle authentication after connection
       this.handleAuthentication(socket);
+
       socket.on("join_chat", (chatId) => {
         socket.join(`chat_${chatId}`);
       });
+
       socket.on("identify", (userId) => {
         if (userId) {
           console.log(`Client ${socket.id} identified as user ${userId}`);
@@ -52,39 +55,58 @@ export class SocketIOProvider {
 
       socket.on("disconnect", () => {
         console.log("Client disconnected:", socket.id);
+        const userId = (socket as any).userData?.id;
+
+        if (userId) {
+          const currentCount = this.onlineUsers.get(userId) || 0;
+          if (currentCount > 0) {
+            const newCount = currentCount - 1;
+            this.onlineUsers.set(userId, newCount);
+
+            if (newCount === 0) {
+              this.io?.emit("user_offline", userId);
+              this.onlineUsers.delete(userId);
+            }
+          }
+        }
       });
     });
 
     console.log("Socket.IO initialized successfully");
   }
 
+  // src/config/socket.ts
   private handleAuthentication(socket: Socket): void {
     try {
-      // Check if cookies are available in handshake
       const cookies = socket.handshake.headers.cookie;
       if (!cookies) {
         console.log("No cookies in handshake");
         return;
       }
 
-      // Parse cookies
       const parsedCookies = parse(cookies);
-      const accessToken = parsedCookies.refreshToken;
-
+      const accessToken = parsedCookies.accessToken; // Use accessToken
       if (!accessToken) {
         console.log("No access token in cookies");
         return;
       }
-      // Verify token
+
       const decoded = jwt.verify(accessToken, process.env.JWT_SECRET!) as {
         id: string;
       };
-
-      // Store user data on socket
       (socket as any).userData = decoded;
 
-      // No need to join room here - client will send 'identify' event
-      console.log(`User authenticated via cookie: ${decoded.id}`);
+      const userId = decoded.id;
+      const currentCount = this.onlineUsers.get(userId) || 0;
+      this.onlineUsers.set(userId, currentCount + 1);
+      if (currentCount === 0) {
+        this.io?.emit("user_online", userId);
+      }
+      socket.join(`user_${userId}`);
+      console.log(`User ${userId} authenticated`);
+
+      const onlineUserIds = Array.from(this.onlineUsers.keys());
+      socket.emit("online_users", onlineUserIds);
     } catch (error) {
       console.error("Cookie authentication error:", error);
     }
