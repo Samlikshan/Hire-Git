@@ -7,7 +7,7 @@ import { MySubScriptoinsUseCase } from "../../domain/usecases/company/Subscripti
 
 export class SubscriptionController {
   private stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2025-03-31.basil",
+    apiVersion: process.env.STRIPE_APP_VERSION! as "2025-03-31.basil",
   });
   private subscriptionRepository = new SubscriptionRepository();
 

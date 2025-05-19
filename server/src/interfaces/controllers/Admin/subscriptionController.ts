@@ -12,7 +12,7 @@ export class SubscriptionController {
   private subscriptionPlanRepository = new SubscriptionPlanRepository();
   private subscriptionRepository = new SubscriptionRepository();
   private stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2025-03-31.basil",
+    apiVersion: process.env.STRIPE_APP_VERSION! as "2025-03-31.basil",
   });
   //useCases
   private createSubscriptionUseCase = new CreateSubscriptionUseCase(
