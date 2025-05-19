@@ -5,6 +5,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import JobDescription from "../ui/JobDetailsCompany";
 import { Job } from "@/types/job";
 import CandidatesBoard from "../CandidatesBoard";
+import InterviewsTab from "../ui/InterviewTab";
+import InProgress from "../ui/in-progress";
 
 function JobDetailsCompany() {
   const navigate = useNavigate();
@@ -162,6 +164,8 @@ function JobDetailsCompany() {
       <main className="p-6">
         {activeTab === "description" && <JobDescription job={job} />}
         {activeTab === "candidates" && <CandidatesBoard />}
+        {activeTab === "interviews" && <InterviewsTab />}
+        {activeTab === "progress" && <InProgress />}
         {/* Other tabs can be implemented as needed */}
       </main>
     </div>

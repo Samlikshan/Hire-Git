@@ -3,6 +3,7 @@ import { Server, Socket } from "socket.io";
 import { parse } from "cookie";
 import jwt from "jsonwebtoken";
 import http from "http";
+import { env } from "process";
 export class SocketIOProvider {
   private static instance: SocketIOProvider;
   private io: Server | null = null;
@@ -22,7 +23,7 @@ export class SocketIOProvider {
 
     this.io = new Server(server, {
       cors: {
-        origin: ["http://localhost:3000", "http://localhost:5173"], // Match your frontend origin
+        origin: [process.env.CLIENT_URL!], // Match your frontend origin
         methods: ["GET", "POST"],
         credentials: true, // Important for cookies
       },

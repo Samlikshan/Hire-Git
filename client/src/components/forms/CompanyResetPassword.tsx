@@ -59,8 +59,7 @@ export default function CompanyResetPassword() {
         params.token,
         formData.confirmPassword
       );
-      console.log("hai");
-      console.log(response);
+
       if (response.status == 200) {
         toast.success("Password reset successful");
         navigate("/company-login");

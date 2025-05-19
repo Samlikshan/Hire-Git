@@ -88,7 +88,6 @@ export default function CompanyTable() {
           }
           return company;
         });
-        console.log(data, "data");
         setCompanyData(data);
       }
       setDeclineReason("");

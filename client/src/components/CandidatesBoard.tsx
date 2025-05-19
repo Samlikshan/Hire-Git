@@ -335,11 +335,10 @@ const CandidatesBoard: React.FC = () => {
     notes: string;
   }) => {
     if (!selectedApplicationId) return;
-    const response = await scheduleInterviewService({
+    await scheduleInterviewService({
       applicationId: selectedApplicationId,
       ...data,
     });
-    console.log(response);
   };
   const filteredCandidates = applicants.filter((applicant) => {
     const matchesSearch =

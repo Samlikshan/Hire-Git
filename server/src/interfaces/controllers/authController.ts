@@ -147,7 +147,6 @@ export class AuthController {
       } = req.body;
       let registrationDocument: string;
 
-      console.log(req.body, req.file);
       if (!req.file) {
         throw new Error("Registration document is required");
       }

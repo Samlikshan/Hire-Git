@@ -156,7 +156,7 @@ export const NotificationPage: React.FC = () => {
   useEffect(() => {
     if (!user.userData?._id) return;
 
-    const socketInstance = io("http://localhost:3000", {
+    const socketInstance = io(import.meta.env.VITE_SOCKET_URL, {
       withCredentials: true,
       transports: ["websocket", "polling"],
     });

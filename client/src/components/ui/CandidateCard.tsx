@@ -1,4 +1,3 @@
-// CandidateCard.tsx
 import React from "react";
 import { useDrag } from "react-dnd";
 import { Calendar, Clock, MoreVertical, ChevronDown } from "lucide-react";
@@ -31,12 +30,14 @@ interface CandidateCardProps {
   onStatusChange: (
     status: "applied" | "shortlisted" | "hired" | "rejected"
   ) => void;
+  onScheduleInterview: (applicationId: string) => void;
 }
 
 const CandidateCard: React.FC<CandidateCardProps> = ({
   applicant,
   onClick,
   onStatusChange,
+  onScheduleInterview,
 }) => {
   const [{ isDragging }, drag] = useDrag({
     type: "candidate",
@@ -58,7 +59,6 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
     { value: "hired", label: "Move to Hired" },
     { value: "rejected", label: "Move to Rejected" },
   ].filter((option) => option.value !== applicant.status);
-  console.log(applicant);
   return (
     <div
       ref={drag}
@@ -113,6 +113,16 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
                   {option.label}
                 </button>
               ))}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onScheduleInterview(applicant._id);
+                  setShowDropdown(false);
+                }}
+                className="block w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 border-t border-gray-100"
+              >
+                Schedule Interview
+              </button>
             </div>
           )}
         </div>

@@ -11,9 +11,11 @@ import { Job, JobFilter } from "@/types/job";
 import { listCompanyJobsService } from "@/services/job";
 import { useSelector } from "react-redux";
 import { RootState } from "@/reducers/rootReducer";
+import { useDebounce } from "@/hooks/useDebouce";
 
 export default function JobsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
@@ -21,21 +23,50 @@ export default function JobsPage() {
   const [filters, setFilters] = useState<JobFilter>({});
   const [filteredJobs, setFilteredJobs] = useState<Job[]>(jobs);
   const [isSearching, setIsSearching] = useState(false);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(6);
+  const [totalJobs, setTotalJobs] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchQuery, activeTab, filters]);
 
   const user = useSelector((state: RootState) => state.user.userData);
 
   useEffect(() => {
     const fetchJobs = async () => {
       if (!user || !user._id) return;
+      setIsLoading(true);
       try {
-        const response = await listCompanyJobsService(user?._id);
-        setJobs(response.data.jobs);
+        const response = await listCompanyJobsService(
+          user._id,
+          page,
+          limit,
+          {
+            status: activeTab !== "all" ? activeTab : undefined,
+            department: filters.department,
+            location: filters.location,
+            type: filters.type,
+            experience: filters.experience,
+          },
+          debouncedSearchQuery
+        );
+
+        setJobs((prev) =>
+          page === 1 ? response.jobs : [...prev, ...response.jobs]
+        );
+        setTotalJobs(response.total);
       } catch (error) {
         console.log(error);
+      } finally {
+        setIsLoading(false);
       }
     };
+
     fetchJobs();
-  }, [user]);
+  }, [page, limit, user, debouncedSearchQuery, activeTab, filters]);
+
+  const hasMore = page * limit < totalJobs;
 
   // Extract unique values for filter options
   const availableDepartments = Array.from(
@@ -220,6 +251,16 @@ export default function JobsPage() {
           onClose={() => setIsCreateDialogOpen(false)}
           onSubmit={handleCreateJob}
         />
+      )}
+      {hasMore && (
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => setPage((prev) => prev + 1)}
+            disabled={isLoading}
+          >
+            {isLoading ? "Loading..." : "Load More"}
+          </button>
+        </div>
       )}
     </div>
   );

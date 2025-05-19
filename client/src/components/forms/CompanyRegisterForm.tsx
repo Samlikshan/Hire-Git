@@ -103,9 +103,7 @@ export default function CompanyRegisterForm() {
     setErrors({});
 
     try {
-      console.log(formData);
       const response = await companyRegisterSerivce(formData);
-      console.log(response);
       if (response.status !== 200) throw new Error("Failed to register");
 
       setErrors({});
