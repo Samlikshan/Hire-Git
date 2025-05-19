@@ -15,10 +15,10 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
 import { RootState } from "@/reducers/rootReducer";
-import axios from "axios";
 import { io } from "socket.io-client";
 import { Chat, Message } from "@/types/Message";
 import { getMessagesService } from "@/services/chat";
+import axiosInstance from "@/services/axiosInstance";
 
 interface ChatProps {
   userType: "company" | "candidate";
@@ -62,7 +62,7 @@ export const MessagesPage: React.FC<ChatProps> = ({
       return;
     }
 
-    const socketInstance = io("http://localhost:3000", {
+    const socketInstance = io(import.meta.env.VITE_SOCKET_URL, {
       withCredentials: true,
       transports: ["websocket", "polling"],
     });
@@ -115,8 +115,8 @@ export const MessagesPage: React.FC<ChatProps> = ({
       ) {
         try {
           console.log("Marking new message as read:", message._id);
-          await axios.post(
-            `http://localhost:3000/api/chat/${message.chatId}/mark-read`,
+          await axiosInstance.post(
+            `/chat/${message.chatId}/mark-read`,
             { messageId: message._id },
             { withCredentials: true }
           );
@@ -214,18 +214,12 @@ export const MessagesPage: React.FC<ChatProps> = ({
       try {
         const [allMessagesResponse, unreadMessagesResponse] = await Promise.all(
           [
-            axios.get(
-              `http://localhost:3000/api/chat/${selectedChat._id}/messages`,
-              {
-                withCredentials: true,
-              }
-            ),
-            axios.get(
-              `http://localhost:3000/api/chat/${selectedChat._id}/unread-messages`,
-              {
-                withCredentials: true,
-              }
-            ),
+            axiosInstance.get(`/chat/${selectedChat._id}/messages`, {
+              withCredentials: true,
+            }),
+            axiosInstance.get(`/chat/${selectedChat._id}/unread-messages`, {
+              withCredentials: true,
+            }),
           ]
         );
         setMessages(allMessagesResponse.data);
@@ -246,8 +240,8 @@ export const MessagesPage: React.FC<ChatProps> = ({
               "Marking all messages as read for chat:",
               selectedChat._id
             );
-            await axios.post(
-              `http://localhost:3000/api/chat/${selectedChat._id}/mark-read`,
+            await axiosInstance.post(
+              `/chat/${selectedChat._id}/mark-read`,
               {},
               { withCredentials: true }
             );
@@ -331,8 +325,8 @@ export const MessagesPage: React.FC<ChatProps> = ({
 
     try {
       setIsSending(true);
-      const { data } = await axios.post(
-        `http://localhost:3000/api/chat/${selectedChat._id}/messages`,
+      const { data } = await axiosInstance.post(
+        `/chat/${selectedChat._id}/messages`,
         {
           senderType: userType,
           senderId: userData._id,
@@ -383,8 +377,8 @@ export const MessagesPage: React.FC<ChatProps> = ({
     setReadMessages((prev) => [...prev, tempMessage]);
 
     try {
-      const { data } = await axios.post(
-        `http://localhost:3000/api/chat/${selectedChat._id}/messages`,
+      const { data } = await axiosInstance.post(
+        `/chat/${selectedChat._id}/messages`,
         formData,
         {
           headers: {

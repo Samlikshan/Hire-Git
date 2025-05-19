@@ -90,7 +90,7 @@ export default function Navbar() {
     console.log("Setting up socket with user ID:", userData?._id);
 
     // Initialize socket connection
-    const socketInstance = io("http://localhost:3000", {
+    const socketInstance = io(import.meta.env.VITE_SOCKET_URL, {
       withCredentials: true,
       transports: ["websocket", "polling"],
     });
