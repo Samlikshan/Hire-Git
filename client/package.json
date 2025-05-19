@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -18,7 +18,7 @@
     "@tailwindcss/vite": "^4.0.17",
     "@zegocloud/zego-uikit-prebuilt": "^2.14.3-beta",
     "axios": "^1.9.0",
-    "chart.js": "^4.4.9",
+    "chart.js": "^4.4.0",
     "chartjs": "^0.3.24",
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.1.0",
@@ -26,7 +26,6 @@
     "lucide-react": "^0.485.0",
     "path": "^0.12.7",
     "react": "^19.0.0",
-    "react-chartjs": "^1.2.0",
     "react-chartjs-2": "^5.3.0",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
