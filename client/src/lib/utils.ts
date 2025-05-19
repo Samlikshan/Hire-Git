@@ -38,3 +38,23 @@ export function formatDate(date: string | Date): string {
 
   return formattedDate;
 }
+
+export function getDayDifference(targetDateStr: Date): number {
+  const targetDate: Date = new Date(targetDateStr);
+  const today: Date = new Date();
+
+  targetDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  const diffMs: number = targetDate.getTime() - today.getTime();
+  const diffDays: number = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  return diffDays;
+}
+
+export function getPercentage(part: number, total: number) {
+  if (total === 0) {
+    return 0;
+  }
+  return (part / total) * 100;
+}

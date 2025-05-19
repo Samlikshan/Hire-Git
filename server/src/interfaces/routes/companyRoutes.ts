@@ -59,4 +59,12 @@ router.patch(
   companyMiddleware(),
   jobApplicationController.shortlistApplicant
 );
+
+router.post(
+  "/job/schedule-interview/",
+  verifyToken(),
+  companyMiddleware(),
+  jobApplicationController.scheduleInterview
+);
+
 export default router;

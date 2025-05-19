@@ -19,12 +19,16 @@
   "homepage": "https://github.com/Samlikshan/Hire#readme",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.777.0",
+    "@types/node-cron": "^3.0.11",
     "@types/winston": "^2.4.4",
+    "@zegocloud/zego-uikit-prebuilt": "^2.14.3-beta",
     "aws-sdk": "^2.1692.0",
     "bcryptjs": "^3.0.2",
+    "body-parser": "^2.2.0",
     "cookie": "^1.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "google-auth-library": "^9.15.1",
@@ -33,11 +37,15 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.2",
     "multer-s3": "^3.0.1",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
     "socket.io": "^4.8.1",
+    "stripe": "^18.0.0",
     "ts-node": "^10.9.2",
     "uuid": "^11.1.0",
-    "winston": "^3.17.0"
+    "uuidv4": "^6.2.13",
+    "winston": "^3.17.0",
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@types/cookie": "^1.0.0",
@@ -50,6 +58,8 @@
     "@types/multer": "^1.4.12",
     "@types/multer-s3": "^3.0.3",
     "@types/node": "^22.14.0",
-    "@types/nodemailer": "^6.4.17"
+    "@types/nodemailer": "^6.4.17",
+    "@types/query-string": "^6.3.0",
+    "query-string": "^9.1.2"
   }
 }

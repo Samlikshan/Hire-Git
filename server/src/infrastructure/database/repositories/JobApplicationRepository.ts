@@ -53,7 +53,6 @@ export class JobApplicationRepository implements IJobApplicationRepository {
   async shortlistApplicant(
     applicationId: string
   ): Promise<UpdateWriteOpResult> {
-    console.log(applicationId);
     return JobApplicationModel.updateOne(
       { _id: applicationId },
       { $set: { status: "shortlisted" } }
@@ -66,5 +65,11 @@ export class JobApplicationRepository implements IJobApplicationRepository {
         path: "company",
       },
     });
+  }
+  schedule(applicationId: string): Promise<UpdateWriteOpResult> {
+    return JobApplicationModel.updateOne(
+      { _id: applicationId },
+      { $set: { status: "scheduled" } }
+    );
   }
 }

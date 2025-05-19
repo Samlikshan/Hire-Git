@@ -108,10 +108,26 @@ export const getAppliedJobsService = async (candiddateId: string) => {
 };
 
 export const saveJobService = async (jobId: string) => {
-  const response = await axiosInstance.post(`/candidate/save-job/${jobId}`)
-  return response
-}
+  const response = await axiosInstance.post(`/candidate/save-job/${jobId}`);
+  return response;
+};
 export const listSavedJobsService = async () => {
-  const response = await axiosInstance.get('/candidate/saved-jobs')
-  return response
-}
+  const response = await axiosInstance.get("/candidate/saved-jobs");
+  return response;
+};
+
+export const scheduleInterviewService = async (data: {
+  applicationId: string;
+  date: string;
+  time: string;
+  duration: string;
+  timeZone: string;
+  round: string;
+  notes: string;
+}) => {
+  const response = await axiosInstance.post(
+    "/company/job/schedule-interview",
+    data
+  );
+  return response;
+};
