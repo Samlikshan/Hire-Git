@@ -11,7 +11,9 @@ export class SubscriptionPlanRepository implements ISubscriptionPlanRepository {
     return await SubscriptionPlanModel.findOne({ _id: planId });
   }
   async listAll(): Promise<SubscriptionPlans[]> {
-    return await SubscriptionPlanModel.find({ isDeleted: false });
+    return await SubscriptionPlanModel.find({ isDeleted: false }).sort({
+      monthlyPrice: 1,
+    });
   }
   async update(
     planId: string,

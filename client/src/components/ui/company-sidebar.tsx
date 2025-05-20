@@ -1,8 +1,6 @@
 import { NavLink } from "react-router-dom";
 import {
-  User,
-  Calendar,
-  Settings,
+  
   LogOut,
   LayoutDashboard,
   UserPlus,
@@ -68,7 +66,7 @@ export default function CompanySidebar() {
       <div className="px-5 py-5 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 bg-gray-100 rounded-md"></div>
-          <h1 className="text-xl font-bold text-gray-900">HireX</h1>
+          <h1 className="text-xl font-bold text-gray-900">HireStack</h1>
         </div>
       </div>
 
@@ -117,12 +115,6 @@ export default function CompanySidebar() {
       {/* Account Navigation */}
       <div className="px-4 mt-auto mb-6">
         <div className="space-y-1">
-          <NavItem to="/company/profile" icon={User}>
-            Profile
-          </NavItem>
-          <NavItem to="/company/settings" icon={Settings}>
-            Settings
-          </NavItem>
           <button
             className="w-full flex items-center gap-3 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-2.5 transition-colors"
             onClick={handleLogout}

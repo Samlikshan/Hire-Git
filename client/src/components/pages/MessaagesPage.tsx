@@ -402,19 +402,19 @@ export const MessagesPage: React.FC<ChatProps> = ({
 
   const getChatDisplayData = (chat: Chat) => {
     const isCompanyView = userType === "company";
-    const otherUser = isCompanyView ? chat.candidateId : chat.companyId;
-    const otherUserId = (otherUser as { _id: string })._id;
+    const otherUser = isCompanyView ? chat.candidateId : chat?.companyId;
+    const otherUserId = (otherUser as { _id: string })?._id;
     const isOnline = onlineUsers.has(otherUserId);
 
     return {
       id: chat._id,
       name: isCompanyView
-        ? (chat.candidateId as { name: string }).name
-        : (chat.companyId as { name: string }).name,
+        ? (chat.candidateId as { name: string })?.name
+        : (chat.companyId as { name: string })?.name,
       avatar: isCompanyView
-        ? (chat.candidateId as { profileImage: string }).profileImage
-        : (chat.companyId as { logo: string }).logo,
-      role: (chat.jobId as { title: string }).title,
+        ? (chat.candidateId as { profileImage: string })?.profileImage
+        : (chat.companyId as { logo: string })?.logo,
+      role: (chat.jobId as { title: string })?.title,
       lastActive: new Date(chat.createdAt).toLocaleDateString(),
       isOnline,
       lastMessage: chat.lastMessage?.content,

@@ -3,7 +3,6 @@ import {
   Home,
   Building,
   Users,
-  Settings,
   LogOut,
   LayoutDashboard,
   Bell,
@@ -92,9 +91,6 @@ export default function AdminSidebar() {
           </h2>
           <NavItem to="/admin/notifications" icon={Bell} notifications={5}>
             Notifications
-          </NavItem>
-          <NavItem to="/admin/settings" icon={Settings}>
-            Settings
           </NavItem>
         </div>
       </div>

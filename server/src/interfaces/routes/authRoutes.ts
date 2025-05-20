@@ -39,7 +39,7 @@ router.post("/google-auth", authController.loginWithGoogle);
 
 router.post(
   "/generate-reset-password",
-  validate(resetPasswordSchema),
+  // validate(resetPasswordSchema),
   authController.sendResetPasswordLinkCandidate
 );
 router.post("/reset-password/candidate", authController.resetPasswordCandidate);

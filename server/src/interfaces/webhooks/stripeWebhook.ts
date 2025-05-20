@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { SubscriptionRepository } from "../../infrastructure/database/repositories/SubscriptionRepository";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: process.env.STRIPE_APP_VERSION! as "2025-03-31.basil",
+  apiVersion: process.env.STRIPE_APP_VERSION! as "2025-04-30.basil",
 });
 
 const subscriptionRepository = new SubscriptionRepository();
