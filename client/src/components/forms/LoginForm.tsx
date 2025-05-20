@@ -97,9 +97,9 @@ export default function LoginForm() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
               />
             </div>
-            {errors.email && (
+            {/* {errors.email && (
               <p className="text-red-500 text-xs">{errors.email}</p>
-            )}
+            )} */}
           </div>
 
           <div className="space-y-1">
@@ -116,9 +116,9 @@ export default function LoginForm() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
               />
             </div>
-            {errors.password && (
+            {/* {errors.password && (
               <p className="text-red-500 text-xs">{errors.password}</p>
-            )}
+            )} */}
           </div>
 
           <div className="flex justify-end">

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Bell, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import { Chat, Message } from "@/types/Message";
 import { MessagesDropdown } from "./Messages";
 
 export default function Navbar() {
+  const navigate = useNavigate();
   const { userData, isAuthenticated } = useSelector(
     (state: RootState) => state.user
   );
@@ -162,7 +163,7 @@ export default function Navbar() {
         {/* Logo - Slightly left */}
         <div className="flex items-center -ml-1">
           <Link to="/" className="flex items-center">
-            <span className="text-2xl font-bold">HireX</span>
+            <span className="text-2xl font-extrabold">HireStack</span>
           </Link>
         </div>
 
@@ -247,7 +248,10 @@ export default function Navbar() {
                 <NotificationDropdown
                   notifications={notifications}
                   isOpen={showNotifications}
-                  onClose={() => setShowNotifications(false)}
+                  onClose={() => {
+                    navigate('/profile/notifications')
+                    setShowNotifications(false);
+                  }}
                   onMarkAsRead={handleMarkAsRead}
                   onMarkAllAsRead={handleMarkAllAsRead}
                 />

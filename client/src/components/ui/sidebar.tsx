@@ -26,27 +26,27 @@ const menuItems = [
     items: [
       { name: "Profile", icon: <User size={20} /> },
       { name: "Jobs", icon: <Briefcase size={20} /> },
-      { name: "Notifications", icon: <Bell size={20} />, badge: 3 },
-      { name: "Messages", icon: <Mail size={20} />, badge: 5 },
+      { name: "Notifications", icon: <Bell size={20} /> },
+      { name: "Messages", icon: <Mail size={20} /> },
     ],
   },
   {
     category: "Activity",
     items: [
-      { name: "Job History", icon: <Clock size={20} /> },
+      // { name: "Job History", icon: <Clock size={20} /> },
       { name: "Saved Jobs", icon: <BookmarkIcon size={20} /> },
-      { name: "Achievements", icon: <Award size={20} /> },
+      // { name: "Achievements", icon: <Award size={20} /> },
     ],
   },
-  {
-    category: "Settings",
-    items: [
-      { name: "Account", icon: <Settings size={20} /> },
-      { name: "Privacy", icon: <Shield size={20} /> },
-      { name: "Billing", icon: <CreditCard size={20} /> },
-      { name: "Help", icon: <HelpCircle size={20} /> },
-    ],
-  },
+  // {
+  //   category: "Settings",
+  //   items: [
+  //     { name: "Account", icon: <Settings size={20} /> },
+  //     { name: "Privacy", icon: <Shield size={20} /> },
+  //     { name: "Billing", icon: <CreditCard size={20} /> },
+  //     { name: "Help", icon: <HelpCircle size={20} /> },
+  //   ],
+  // },
 ];
 
 const Sidebar = ({ currentPath }: { currentPath: string }) => {

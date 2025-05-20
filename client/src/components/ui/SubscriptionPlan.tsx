@@ -6,6 +6,7 @@ import SubscriptionHistory from "./SubscriptionHistory";
 // import PlanActions from "./PlanActions";
 import { getMySubscriptionsService } from "@/services/subscription";
 import { Subscription } from "@/types/Subscription";
+import UpgradeBanner from "./UpgradeBanner";
 
 const SubscriptionPlan: React.FC = () => {
   const [currentPlan, setCurrentPlan] = useState<Subscription>();
@@ -23,7 +24,12 @@ const SubscriptionPlan: React.FC = () => {
   return (
     <div className="p-6 max-w-6xl mx-auto animate-fadeIn">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">My Subscription</h1>
-
+      {currentPlan && (
+        <UpgradeBanner
+          currentPlan={currentPlan.plan.name}
+          price={currentPlan.plan.monthlyPrice}
+        />
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column - Plan details */}
         <div className="lg:col-span-2 space-y-6">

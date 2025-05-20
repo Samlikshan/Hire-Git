@@ -71,7 +71,7 @@ export const MessagesDropdown: React.FC<MessagesDropdownProps> = ({
               return (
                 <Link
                   key={chat._id}
-                  to={`/messages`} // Update with your messages route
+                  to={`/profile/messages`} // Update with your messages route
                   className={`block p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors `}
                 >
                   <div className="flex items-start gap-4">
@@ -125,7 +125,7 @@ export const MessagesDropdown: React.FC<MessagesDropdownProps> = ({
 
           <div className="p-4 bg-gray-50 border-t border-gray-100">
             <Link
-              to="/messages"
+              to="/profile/messages"
               className="w-full flex items-center justify-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
             >
               Open Messages
