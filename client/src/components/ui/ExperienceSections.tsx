@@ -15,6 +15,7 @@ import { addExperienceService } from "@/services/candidate";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/reducers/rootReducer";
 import { updateUserData } from "@/reducers/userSlice";
+import { toast } from "sonner";
 
 interface Experience {
   _id?: string;
@@ -82,10 +83,22 @@ export default function ExperienceSection() {
         }
       }
 
+      experiences.map((experience) => {
+        if (
+          experience.jobTitle.trim().toLowerCase() ==
+          jobTitle.trim().toLocaleLowerCase()
+        ) {
+          toast.error("Experience cant be duplicate");
+          newErrors.jobTitle = "Job title is duplicated";
+          return;
+        }
+      });
+
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
         return;
       }
+
       // Call the API to add the new experience
       const response = await addExperienceService({
         jobTitle: jobTitle,
