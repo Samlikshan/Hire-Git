@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const verifyTokenMiddleware_1 = require("../middlewares/verifyTokenMiddleware");
+const subscriptionController_1 = require("../controllers/subscriptionController");
+const router = (0, express_1.Router)();
+const subscriptionController = new subscriptionController_1.SubscriptionController();
+router.post("/create-session", (0, verifyTokenMiddleware_1.verifyToken)(), subscriptionController.createCheckoutSession);
+router.get("/verify/:sessionId", (0, verifyTokenMiddleware_1.verifyToken)(), subscriptionController.verifyPayment);
+router.get("/my-subscriptions", (0, verifyTokenMiddleware_1.verifyToken)(), subscriptionController.mySubscriptions);
+router.post("/cancel-checkout-session/:sessionId", (0, verifyTokenMiddleware_1.verifyToken)(), subscriptionController.cancelCheckoutSession);
+exports.default = router;
