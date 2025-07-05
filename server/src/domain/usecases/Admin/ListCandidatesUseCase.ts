@@ -3,7 +3,11 @@ import { ICandidateRepository } from "../../repositories/ICandidateRepository";
 
 export class ListCandidatesUseCase {
   constructor(private candidateRepository: ICandidateRepository) {}
-  async execute(): Promise<Candidate[]> {
-    return this.candidateRepository.listCandidates();
+  async execute(params: {
+    page: number;
+    limit: number;
+    search: string;
+  }): Promise<{ candidates: Candidate[]; total: number }> {
+    return this.candidateRepository.listCandidates(params);
   }
 }

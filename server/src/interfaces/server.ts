@@ -12,3 +12,4 @@ cronJobService.subscriptionExpiration();
 server.listen(config.env.port, () => {
   console.log(`server running at port ${process.env.PORT}`);
 });
+  

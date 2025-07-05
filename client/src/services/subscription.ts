@@ -43,3 +43,9 @@ export const getSubscriptionHistoryService = async (timeRange: string) => {
     `/admin/subscription/dasbaord?filterBy=${timeRange}`
   );
 };
+
+export const cancelPaymentService = async (sessionId: string) => {
+  return await axiosInstance.post(
+    `/payments/cancel-checkout-session/${sessionId}`
+  );
+};

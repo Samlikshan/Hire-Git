@@ -44,6 +44,7 @@ import "./styles/animation.css";
 import SubscriptionPlan from "./components/ui/SubscriptionPlan";
 import DashboardPage from "./components/ui/SubscriptionDashboard";
 import DashboardOverview from "./components/ui/DashboardOverview";
+import CancelPayment from "./components/pages/CancelPayment";
 
 function App() {
   return (
@@ -87,6 +88,7 @@ function App() {
 
           <Route path="/" element={<Home />} />
           <Route path="/success" element={<SuccessPage />} />
+          <Route path="/subscription/cancel" element={<CancelPayment />} />
 
           <Route element={<CompanyStatusRoutes />}>
             <Route path="/company-status" element={<CompanyStatus />} />

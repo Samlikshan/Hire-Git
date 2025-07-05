@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface CheckoutSession extends Document {
   userId: string;
   sessionId: string;
-  status: "pending" | "completed" | "expired";
+  status: "pending" | "completed" | "expired" | "cancelled";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -13,7 +13,7 @@ const CheckoutSessionSchema = new Schema<CheckoutSession>({
   sessionId: { type: String, required: true, unique: true },
   status: {
     type: String,
-    enum: ["pending", "completed", "expired"],
+    enum: ["pending", "completed", "expired", "cancelled"],
     default: "pending",
   },
   createdAt: { type: Date, default: Date.now },

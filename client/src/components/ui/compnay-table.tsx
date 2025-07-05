@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -21,6 +21,8 @@ import { listCompaniesService, reveiwCompanyService } from "@/services/admin";
 
 import { useSelector } from "react-redux";
 import { RootState } from "@/reducers/rootReducer";
+import { useDebounce } from "@/hooks/useDebouce";
+
 export default function CompanyTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCompany, setSelectedCompany] = useState(null);
@@ -29,39 +31,41 @@ export default function CompanyTable() {
   const [declineReason, setDeclineReason] = useState("");
   const [actionType, setActionType] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(1);
   const [companyData, setCompanyData] = useState([]);
+
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const itemsPerPage = 8;
 
   const userData = useSelector((state: RootState) => state.user);
+
+  const fetchCompanies = useCallback(async () => {
+    try {
+      const response = await listCompaniesService({
+        limit: itemsPerPage,
+        page: currentPage,
+        search: debouncedSearch,
+      });
+      setCompanyData(response.data?.companies);
+      setTotalPage(response.data?.totalPage);
+    } catch (error) {
+      console.log(error);
+    }
+  }, [currentPage, debouncedSearch]);
+
   useEffect(() => {
-    const getCompanies = async () => {
-      try {
-        const response = await listCompaniesService();
-        setCompanyData(response.data?.companies);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getCompanies();
-    setCurrentPage(1);
-  }, [searchQuery]);
+    fetchCompanies();
+  }, [fetchCompanies]);
 
-  // Filter companies based on search query
-  const filteredCompanies = companyData.filter(
-    (company) =>
-      company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      company.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      company.industry.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = filteredCompanies.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(totalPage / itemsPerPage);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  const handleSearchInput = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to first page on new search
   };
 
   const handleAction = (company, action) => {
@@ -80,15 +84,23 @@ export default function CompanyTable() {
       );
 
       setOpenDialog(false);
-      if (response.status == 200) {
-        const data = companyData.filter((company) => {
-          if (company._id == selectedCompany._id) {
-            return (selectedCompany.accountStatus.status =
-              actionType.charAt(0).toUpperCase() + actionType.slice(1) + "ed");
+      if (response.status === 200) {
+        const updated = companyData.map((company) => {
+          if (company._id === selectedCompany._id) {
+            return {
+              ...company,
+              accountStatus: {
+                ...company.accountStatus,
+                status:
+                  actionType.charAt(0).toUpperCase() +
+                  actionType.slice(1) +
+                  "ed",
+              },
+            };
           }
           return company;
         });
-        setCompanyData(data);
+        setCompanyData(updated);
       }
       setDeclineReason("");
     } catch (error) {
@@ -103,7 +115,7 @@ export default function CompanyTable() {
         <Input
           placeholder="Search by name, email, or industry..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={handleSearchInput}
           className="w-full max-w-lg"
         />
         <Button variant="outline">
@@ -124,7 +136,7 @@ export default function CompanyTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentItems.map((company) => (
+            {companyData.map((company) => (
               <TableRow key={company._id}>
                 <TableCell className="font-medium">
                   <Button
@@ -161,23 +173,23 @@ export default function CompanyTable() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    {company.accountStatus.status == "Pending" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAction(company, "accept")}
-                      >
-                        Accept
-                      </Button>
-                    )}
-                    {company.accountStatus.status == "Pending" && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleAction(company, "reject")}
-                      >
-                        Decline
-                      </Button>
+                    {company.accountStatus.status === "Pending" && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAction(company, "accept")}
+                        >
+                          Accept
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleAction(company, "reject")}
+                        >
+                          Decline
+                        </Button>
+                      </>
                     )}
                   </div>
                 </TableCell>
@@ -187,7 +199,7 @@ export default function CompanyTable() {
         </Table>
       </div>
 
-      {/* Pagination Controls */}
+      {/* Pagination */}
       <div className="flex justify-end mt-4 gap-2">
         <Button
           variant="outline"
@@ -263,7 +275,7 @@ export default function CompanyTable() {
             {selectedCompany?.registrationDocument ? (
               <iframe
                 src={`${import.meta.env.VITE_S3_PATH}/${
-                  selectedCompany?.registrationDocument
+                  selectedCompany.registrationDocument
                 }`}
                 className="w-full h-full"
                 title="PDF Preview"

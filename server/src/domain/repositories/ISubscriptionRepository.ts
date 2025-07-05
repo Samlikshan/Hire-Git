@@ -16,6 +16,10 @@ export interface ISubscriptionRepository {
     userId: string;
     sessionId: string;
   }): Promise<void>;
+  cancelCheckoutSession(sessionData: {
+    userId: string;
+    sessionId: string;
+  }): Promise<void>;
   findActiveSession(userId: string): Promise<CheckoutSession | null>;
   updateSessionStatus(
     sessionId: string,

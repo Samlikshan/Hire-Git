@@ -3,7 +3,14 @@ import { ICompanyRepository } from "../../repositories/ICompanyRepository";
 
 export class ListCompanyUseCase {
   constructor(private companyRepository: ICompanyRepository) {}
-  async execute(): Promise<Company[]> {
-    return this.companyRepository.listAllCompany();
+  async execute(params: {
+    page: number;
+    limit: number;
+    search: string;
+  }): Promise<{ companies: Company[]; total: number }> {
+    const { companies, total } = await this.companyRepository.listAllCompany(
+      params
+    );
+    return { companies, total };
   }
 }

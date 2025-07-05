@@ -36,4 +36,6 @@ router.post(
   adminMiddleWare(),
   adminController.blockCandidate
 );
+
+
 export default router;

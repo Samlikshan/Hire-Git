@@ -30,7 +30,7 @@ export class CreateSubscriptionCheckoutUseCase {
       ],
       mode: "subscription",
       success_url: `${process.env.CLIENT_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL}/cancel`,
+      cancel_url: `${process.env.CLIENT_URL}/subscription/cancel?session_id={CHECKOUT_SESSION_ID}`,
     });
     await this.subscriptionRepository.createCheckoutSession({
       userId,

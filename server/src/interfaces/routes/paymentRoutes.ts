@@ -23,4 +23,10 @@ router.get(
   subscriptionController.mySubscriptions
 );
 
+router.post(
+  "/cancel-checkout-session/:sessionId",
+  verifyToken(),
+  subscriptionController.cancelCheckoutSession
+);
+
 export default router;

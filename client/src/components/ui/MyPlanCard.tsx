@@ -57,7 +57,7 @@ const PlanCard: React.FC<{ plan: Plan | undefined }> = ({ plan }) => {
             Plan Features
           </h3>
           <ul className="space-y-3">
-            {/* {plan.features.map((feature, index) => (
+            {Object.keys(plan.features).map((feature, index) => (
               <li
                 key={index}
                 className="flex items-center text-gray-700 bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors"
@@ -65,9 +65,10 @@ const PlanCard: React.FC<{ plan: Plan | undefined }> = ({ plan }) => {
                 <div className="w-6 h-6 mr-3 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                   <CheckCircle size={14} className="text-blue-600" />
                 </div>
-                {feature}
+                {feature.charAt(0).toUpperCase() + feature.slice(1)}:{" "}
+                {plan.features[feature]}
               </li>
-            ))} */}
+            ))}
           </ul>
         </div>
       </div>

@@ -24,11 +24,14 @@ export class ChatRepository implements IChatRepository {
   }
 
   async getUserChats(userId: string): Promise<Chat[]> {
-    return chatModel.find({ candidateId: userId }).populate("companyId jobId");
+    return chatModel
+      .find({ candidateId: userId })
+      .populate("companyId jobId")
+      .sort({ createdAt: -1 });
   }
 
   async getCompanyChats(companyId: string): Promise<Chat[]> {
-    return chatModel.find({ companyId }).populate("candidateId jobId");
+    return chatModel.find({ companyId }).populate("candidateId jobId").sort({createdAt:-1})
   }
 
   async updateLastMessage(

@@ -14,7 +14,11 @@ export interface ICandidateRepository {
     id: string,
     password: string
   ): Promise<UpdateWriteOpResult>;
-  listCandidates(): Promise<Candidate[]>;
+  listCandidates(params: {
+    page: number;
+    limit: number;
+    search: string;
+  }): Promise<{ candidates: Candidate[]; total: number }>;
   findAndUpdateProfile(
     id: string,
     name: string,

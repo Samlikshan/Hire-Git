@@ -4,10 +4,10 @@ import { SubscriptionRepository } from "../../infrastructure/database/repositori
 import { NextFunction, Request, Response } from "express";
 import { SubscriptionCheckoutUseCase } from "../../domain/usecases/company/Subscription/SubscriptionCheckoutUseCase";
 import { MySubScriptoinsUseCase } from "../../domain/usecases/company/Subscription/MySubscriptionsUseCase";
-
+import { CancelPaymentSessionUseCase } from "../../domain/usecases/company/Subscription/CancelPaymentSessionUseCase";
 export class SubscriptionController {
   private stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: process.env.STRIPE_APP_VERSION! as "2025-04-30.basil",
+    apiVersion: process.env.STRIPE_APP_VERSION! as "2025-03-30.basil",
   });
   private subscriptionRepository = new SubscriptionRepository();
 
@@ -26,6 +26,10 @@ export class SubscriptionController {
     this.subscriptionRepository
   );
 
+  private cancelPaymentSessionUseCase = new CancelPaymentSessionUseCase(
+    this.subscriptionRepository
+  );
+
   createCheckoutSession = async (
     req: Request,
     res: Response,
@@ -37,6 +41,24 @@ export class SubscriptionController {
       const response = await this.createSubscriptionCheckoutUsecase.execute(
         priceId,
         user?.id!
+      );
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  cancelCheckoutSession = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { sessionId } = req.params;
+      const user = req.user;
+      const response = await this.cancelPaymentSessionUseCase.execute(
+        user?.id!,
+        sessionId
       );
       res.json(response);
     } catch (error) {

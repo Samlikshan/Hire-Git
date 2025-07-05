@@ -1,7 +1,18 @@
 import axiosInstance from "./axiosInstance";
 
-export const listCompaniesService = async () => {
-  const response = await axiosInstance.get(`/admin/list-companies`);
+export const listCompaniesService = async (params: {
+  page: number;
+  limit: number;
+  search: string;
+}) => {
+  const queryParams = new URLSearchParams({
+    page: params.page.toString(),
+    limit: params.limit.toString(),
+    search: params.search.toString(),
+  });
+  const response = await axiosInstance.get(
+    `/admin/list-companies?${queryParams}`
+  );
   return response;
 };
 
@@ -20,10 +31,23 @@ export const reveiwCompanyService = async (
   return response;
 };
 
-export const listCandidatesService = async () => {
-  const response = await axiosInstance.get(`/admin/list-candidates`, {
-    withCredentials: true,
+export const listCandidatesService = async (params: {
+  page: number;
+  limit: number;
+  search: string;
+}) => {
+  const queryParams = new URLSearchParams({
+    page: params.page.toString(),
+    limit: params.limit.toString(),
+    search: params.search.toString(),
   });
+
+  const response = await axiosInstance.get(
+    `/admin/list-candidates?${queryParams}`,
+    {
+      withCredentials: true,
+    }
+  );
   return response;
 };
 

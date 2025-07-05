@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -20,6 +20,7 @@ import { Search } from "lucide-react";
 import { listCandidatesService, blockCandidateService } from "@/services/admin";
 
 import { Candidate } from "@/types/CandidateType";
+import { useDebounce } from "@/hooks/useDebouce";
 
 export default function CandidateTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,46 +29,55 @@ export default function CandidateTable() {
   const [blockStatus, setBlockStatus] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [candidateData, setCandidateData] = useState<Candidate[]>([]);
+  const [totalPage, setTotalPage] = useState(1);
+
   const itemsPerPage = 8;
 
-  // Fetch candidates only once on component mount
+  const debouncedQuery = useDebounce(searchQuery, 500);
+
+  const fetchCandidate = useCallback(async () => {
+    try {
+      const response = await listCandidatesService({
+        page: currentPage,
+        search: debouncedQuery,
+        limit: itemsPerPage,
+      });
+      console.log(response);
+      setCandidateData(response.data?.candidates);
+      setTotalPage(response.data?.totalCount);
+    } catch (error) {
+      console.log(error);
+    }
+  }, [debouncedQuery, currentPage]);
+
   useEffect(() => {
-    const getCandidates = async () => {
-      try {
-        const response = await listCandidatesService();
-        setCandidateData(response.data?.candidates);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getCandidates();
-  }, []);
+    fetchCandidate();
+  }, [fetchCandidate]);
+  // Fetch candidates only once on component mount
 
   // Reset to first page when search query changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [debouncedQuery]);
 
-  const filteredCandidates = candidateData.filter(
-    (candidate) =>
-      (candidate.name || "")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      (candidate.email || "")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      (candidate.profession || "")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase())
-  );
+  // const filteredCandidates = candidateData.filter(
+  //   (candidate) =>
+  //     (candidate.name || "")
+  //       .toLowerCase()
+  //       .includes(searchQuery.toLowerCase()) ||
+  //     (candidate.email || "")
+  //       .toLowerCase()
+  //       .includes(searchQuery.toLowerCase()) ||
+  //     (candidate.profession || "")
+  //       .toLowerCase()
+  //       .includes(searchQuery.toLowerCase())
+  // );
 
   // Pagination logic
-  const totalPages = Math.ceil(filteredCandidates.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = filteredCandidates.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(totalPage / itemsPerPage);
 
   const handlePageChange = (page: number) => {
+    console.log(page);
     setCurrentPage(page);
   };
 
@@ -123,7 +133,7 @@ export default function CandidateTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentItems.map((candidate) => (
+            {candidateData.map((candidate) => (
               <TableRow key={candidate._id}>
                 <TableCell className="font-medium">{candidate.name}</TableCell>
                 <TableCell>{candidate.email}</TableCell>

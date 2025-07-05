@@ -44,9 +44,15 @@ export class AdminController {
 
   listCompanies = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const response = await this.listCompaniesUseCase.execute();
+      const { page = 1, limit = 8, search = "" } = req.query;
+      const { companies, total } = await this.listCompaniesUseCase.execute({
+        page: Number(page),
+        limit: Number(limit),
+        search: search.toString(),
+      });
       res.json({
-        companies: response,
+        companies: companies,
+        totalPage: total,
         message: "Fetched Companies Successfully",
       });
     } catch (error: unknown) {
@@ -74,9 +80,14 @@ export class AdminController {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
+    const { page = 1, limit = 8, search = "" } = req.query;
     try {
-      const response = await this.listCandidateUseCase.execute();
-      res.json({ candidates: response });
+      const response = await this.listCandidateUseCase.execute({
+        page: Number(page),
+        limit: Number(limit),
+        search: search.toString(),
+      });
+      res.json({ candidates: response.candidates, totalCount: response.total });
     } catch (error: unknown) {
       next(error);
     }

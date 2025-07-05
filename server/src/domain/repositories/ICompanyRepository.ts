@@ -19,7 +19,11 @@ export interface ICompanyRepository {
     newPassword: string
   ): Promise<UpdateWriteOpResult>;
   listByStatus(): Promise<Company[]>;
-  listAllCompany(): Promise<Company[]>;
+  listAllCompany(params: {
+    page: number;
+    limit: number;
+    search: string;
+  }): Promise<{ companies: Company[]; total: number }>;
   findByIdAndUpdateProfile(
     id: string,
     logo: string,

@@ -2,6 +2,7 @@ import { UpdateWriteOpResult } from "mongoose";
 import { Candidate } from "../../../domain/entities/Candidate";
 import { ICandidateRepository } from "../../../domain/repositories/ICandidateRepository";
 import { CandidateModel } from "../models/candidateModel";
+import { OpenSearch } from "aws-sdk";
 
 export class CandidateRepository implements ICandidateRepository {
   async save(candidate: {
@@ -27,8 +28,22 @@ export class CandidateRepository implements ICandidateRepository {
       { $set: { password: password } }
     );
   }
-  async listCandidates(): Promise<Candidate[]> {
-    return await CandidateModel.find();
+  async listCandidates(params: {
+    page: number;
+    limit: number;
+    search: string;
+  }): Promise<{ candidates: Candidate[]; total: number }> {
+    const skip = (params.page - 1) * params.limit;
+    const total = await CandidateModel.countDocuments({
+      name: { $regex: params.search, $options: "i" },
+    });
+    const candidates = await CandidateModel.find({
+      name: { $regex: params.search, $options: "i" },
+    })
+      .skip(skip)
+      .limit(params.limit)
+      .select("name email profession isBlocked");
+    return { candidates, total };
   }
   async findAndUpdateProfile(
     id: string,

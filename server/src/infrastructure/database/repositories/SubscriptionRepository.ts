@@ -65,6 +65,19 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     await CheckoutSessionModel.create(sessionData);
   }
 
+  async cancelCheckoutSession(sessionData: {
+    userId: string;
+    sessionId: string;
+  }): Promise<void> {
+    await CheckoutSessionModel.updateOne(
+      {
+        userId: sessionData.userId,
+        sessionId: sessionData.sessionId,
+      },
+      { $set: { status: "cancelled" } }
+    );
+  }
+
   async findActiveSession(userId: string): Promise<CheckoutSession | null> {
     return CheckoutSessionModel.findOne({
       userId,

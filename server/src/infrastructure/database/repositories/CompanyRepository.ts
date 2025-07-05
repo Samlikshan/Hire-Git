@@ -47,8 +47,26 @@ export class CompanyRepository implements ICompanyRepository {
     return await CompanyModel.find({ "accountStatus.status": "Pending" });
   }
 
-  async listAllCompany(): Promise<Company[]> {
-    return await CompanyModel.find();
+  async listAllCompany(params: {
+    page: number;
+    limit: number;
+    search: string;
+  }): Promise<{ companies: Company[]; total: number }> {
+    const skip = (params.page - 1) * params.limit;
+
+    const total = await CompanyModel.countDocuments({
+      name: { $regex: params.search, $options: "i" },
+    });
+
+    const companies = await CompanyModel.find({
+      name: { $regex: params.search, $options: "i" },
+    })
+      .skip(skip)
+      .limit(params.limit)
+      .select(
+        "name email contactNumber industry registrationDocument accountStatus"
+      );
+    return { companies, total };
   }
 
   async findByIdAndUpdateProfile(
